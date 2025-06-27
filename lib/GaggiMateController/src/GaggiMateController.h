@@ -7,6 +7,7 @@
 #include <peripherals/DimmedPump.h>
 #include <peripherals/Heater.h>
 #include <peripherals/Max31855Thermocouple.h>
+#include <peripherals/NTCTemperatureSensor.h>
 #include <peripherals/PressureSensor.h>
 #include <peripherals/SimplePump.h>
 #include <peripherals/SimpleRelay.h>

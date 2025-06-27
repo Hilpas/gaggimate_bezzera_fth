@@ -1,33 +1,45 @@
 #ifndef NTCTEMPERATURESENSOR_H
 #define NTCTEMPERATURESENSOR_H
-#include <Arduino.h>
 
-class NTCThermistor {
-public:
-    NTCThermistor(uint8_t pin, float seriesResistor, float nominalResistance, float nominalTempC, float bCoefficient)
-        : _pin(pin), _seriesResistor(seriesResistor), _nominalResistance(nominalResistance),
-          _nominalTempC(nominalTempC), _bCoefficient(bCoefficient) {}
+#include "TemperatureSensor.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <functional>
 
-    float readTemperatureC() {
-        int adc = analogRead(_pin);
-        float resistance = _seriesResistor / ((4095.0 / adc) - 1.0);
-        float steinhart;
-        steinhart = resistance / _nominalResistance;          // (R/Ro)
-        steinhart = log(steinhart);                           // ln(R/Ro)
-        steinhart /= _bCoefficient;                           // 1/B * ln(R/Ro)
-        steinhart += 1.0 / (_nominalTempC + 273.15);          // + (1/To)
-        steinhart = 1.0 / steinhart;                          // Invert
-        steinhart -= 273.15;                                  // convert to C
-        return steinhart;
-    }
+constexpr int NTC_UPDATE_INTERVAL = 250;
+constexpr int NTC_MAX_ERRORS = 20;
+constexpr double NTC_MAX_SAFE_TEMP = 170.0;
 
-    void setup() {
-        pinMode(_pin, INPUT);
-    }
+using temperature_callback_t = std::function<void(float)>;
+using temperature_error_callback_t = std::function<void()>;
 
-private:
-    uint8_t _pin;
-    float _seriesResistor, _nominalResistance, _nominalTempC, _bCoefficient;
-};
+class NTCTemperatureSensor : public TemperatureSensor{
+    public:
+        NTCTemperatureSensor(int pin, float seriesResistor, float nominalResistance, float nominalTempC, float bCoefficient, 
+            const temperature_error_callback_t &error_callback, const temperature_callback_t &callback);
+        float read() override;
+        bool hasError() override;
+
+        void setup();
+        void loop();
+
+    private:
+        xTaskHandle taskHandle;
+
+        float errors = .0f;
+        float temperature = .0f;
+
+        int pin;
+        float seriesResistor;
+        float nominalResistance;
+        float nominalTempC;
+        float bCoefficient;
+
+        temperature_callback_t callback;
+        temperature_error_callback_t error_callback;
+        
+        const char *LOG_TAG = "NTCTemperatureSensor";
+        static void monitorTask(void *arg);
+    };
 
 #endif // NTCTEMPERATURESENSOR_H
