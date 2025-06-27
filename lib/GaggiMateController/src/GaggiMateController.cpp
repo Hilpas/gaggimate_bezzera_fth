@@ -14,7 +14,8 @@ GaggiMateController::GaggiMateController() {
 
 void GaggiMateController::setup() {
     delay(5000);
-    detectBoard();
+    // detectBoard();       // <-- Disable board detection 
+    _config = GM_BEZZERA;  // <-- Always use my config
     detectAddon();
 
     String systemInfo = make_system_info(_config);
