@@ -29,7 +29,7 @@ void GaggiMateController::setup() {
         this->temperature_sensor, _config.heaterPin, [this]() { thermalRunawayShutdown(); },
         [this](float Kp, float Ki, float Kd) { _ble.sendAutotuneResult(Kp, Ki, Kd); });
     this->valve = new SimpleRelay(_config.valvePin, _config.valveOn);
-    this->alt = new SimpleRelay(_config.altPin, _config.altOn);
+    //this->alt = new SimpleRelay(_config.altPin, _config.altOn);
     if (_config.capabilites.pressure) {
         pressureSensor = new PressureSensor(_config.pressureSda, _config.pressureScl, [this](float pressure) { /* noop */ });
     }
@@ -39,14 +39,14 @@ void GaggiMateController::setup() {
         pump = new SimplePump(_config.pumpPin, _config.pumpOn, _config.capabilites.ssrPump ? 1000.0f : 5000.0f);
     }
     this->brewBtn = new DigitalInput(_config.brewButtonPin, [this](const bool state) { _ble.sendBrewBtnState(state); });
-    this->steamBtn = new DigitalInput(_config.steamButtonPin, [this](const bool state) { _ble.sendSteamBtnState(state); });
+    //this->steamBtn = new DigitalInput(_config.steamButtonPin, [this](const bool state) { _ble.sendSteamBtnState(state); });
     this->temperature_sensor->setup();
     this->heater->setup();
     this->valve->setup();
-    this->alt->setup();
+    //this->alt->setup();
     this->pump->setup();
     this->brewBtn->setup();
-    this->steamBtn->setup();
+    //this->steamBtn->setup();
     if (_config.capabilites.pressure) {
         pressureSensor->setup();
         _ble.registerPressureScaleCallback([this](float scale) { this->pressureSensor->setScale(scale); });
