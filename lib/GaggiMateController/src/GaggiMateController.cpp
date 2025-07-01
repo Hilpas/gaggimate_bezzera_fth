@@ -6,10 +6,11 @@
 #include <freertos/task.h>
 
 GaggiMateController::GaggiMateController() {
-    configs.push_back(GM_STANDARD_REV_1X);
-    configs.push_back(GM_STANDARD_REV_2X);
-    configs.push_back(GM_PRO_REV_1x);
-    configs.push_back(GM_PRO_LEGO);
+    //configs.push_back(GM_STANDARD_REV_1X);
+    //configs.push_back(GM_STANDARD_REV_2X);
+    //configs.push_back(GM_PRO_REV_1x);
+    //configs.push_back(GM_PRO_LEGO);
+    configs.push_back(GM_BEZZERA);
 }
 
 void GaggiMateController::setup() {
@@ -21,11 +22,11 @@ void GaggiMateController::setup() {
     String systemInfo = make_system_info(_config);
     _ble.initServer(systemInfo);
 
-    this->thermocouple = new Max31855Thermocouple(
-        _config.maxCsPin, _config.maxMisoPin, _config.maxSckPin, [this](float temperature) { /* noop */ },
+    this->temperature_sensor = new NTCTemperatureSensor(
+        _config.temperaturePin, 10000.0f, 50000.0f, 25.0f, 3976.0f, [this](float temperature) { /* noop */ },
         [this]() { thermalRunawayShutdown(); });
     this->heater = new Heater(
-        this->thermocouple, _config.heaterPin, [this]() { thermalRunawayShutdown(); },
+        this->temperature_sensor, _config.heaterPin, [this]() { thermalRunawayShutdown(); },
         [this](float Kp, float Ki, float Kd) { _ble.sendAutotuneResult(Kp, Ki, Kd); });
     this->valve = new SimpleRelay(_config.valvePin, _config.valveOn);
     this->alt = new SimpleRelay(_config.altPin, _config.altOn);
@@ -39,7 +40,7 @@ void GaggiMateController::setup() {
     }
     this->brewBtn = new DigitalInput(_config.brewButtonPin, [this](const bool state) { _ble.sendBrewBtnState(state); });
     this->steamBtn = new DigitalInput(_config.steamButtonPin, [this](const bool state) { _ble.sendSteamBtnState(state); });
-    this->thermocouple->setup();
+    this->temperature_sensor->setup();
     this->heater->setup();
     this->valve->setup();
     this->alt->setup();
@@ -105,7 +106,7 @@ void GaggiMateController::loop() {
     delay(250);
 }
 
-void GaggiMateController::registerBoardConfig(ControllerConfig config) { configs.push_back(config); }
+void GaggiMateController::registerBoardConfig(ControllerConfigBezzera config) { configs.push_back(config); }
 
 void GaggiMateController::detectBoard() {
     pinMode(DETECT_EN_PIN, OUTPUT);
@@ -115,7 +116,7 @@ void GaggiMateController::detectBoard() {
     digitalWrite(DETECT_EN_PIN, LOW);
     int boardId = round(((float)millivolts) / 100.0f - 0.5f);
     ESP_LOGI(LOG_TAG, "Detected Board ID: %d", boardId);
-    for (ControllerConfig config : configs) {
+    for (ControllerConfigBezzera config : configs) {
         if (config.autodetectValue == boardId) {
             _config = config;
             ESP_LOGI(LOG_TAG, "Using Board: %s", _config.name.c_str());
@@ -154,9 +155,9 @@ void GaggiMateController::thermalRunawayShutdown() {
 void GaggiMateController::sendSensorData() {
     if (_config.capabilites.pressure) {
         auto dimmedPump = static_cast<DimmedPump *>(pump);
-        _ble.sendSensorData(this->thermocouple->read(), this->pressureSensor->getPressure(), dimmedPump->getFlow());
+        _ble.sendSensorData(this->temperature_sensor->read(), this->pressureSensor->getPressure(), dimmedPump->getFlow());
         _ble.sendVolumetricMeasurement(dimmedPump->getCoffeeVolume());
     } else {
-        _ble.sendSensorData(this->thermocouple->read(), 0.0f, 0.0f);
+        _ble.sendSensorData(this->temperature_sensor->read(), 0.0f, 0.0f);
     }
 }

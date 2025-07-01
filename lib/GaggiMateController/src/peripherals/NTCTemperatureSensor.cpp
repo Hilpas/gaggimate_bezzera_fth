@@ -4,7 +4,7 @@
 
 NTCTemperatureSensor::NTCTemperatureSensor(const int pin, const float seriesResistor, const float nominalResistance,
                                            const float nominalTempC, const float bCoefficient,
-                                           const temperature_error_callback_t &error_callback, const temperature_callback_t &callback)
+                                            const temperature_callback_t &callback, const temperature_error_callback_t &error_callback)
                                            : pin(pin), seriesResistor(seriesResistor), nominalResistance(nominalResistance),
                                              nominalTempC(nominalTempC), bCoefficient(bCoefficient) {
     this->callback = callback;
@@ -27,14 +27,16 @@ void NTCTemperatureSensor::loop() {
     float resistance = seriesResistor / ((4095.0 / adc) - 1.0);
     float temp = 0.0f;
 
-    temp = resistance / nominalResistance;          // (R/Ro)
+    // Steinhart-Hart equation for NTC thermistors
+    // T = 1 / (A + B * ln(R) + C * ln(R)^3)
+    temp = resistance / nominalResistance;   // (R/Ro)
     temp = log(temp);                        // ln(R/Ro)
-    temp /= bCoefficient;                           // 1/B * ln(R/Ro)
-    temp += 1.0 / (nominalTempC + 273.15);          // + (1/To)
+    temp /= bCoefficient;                    // 1/B * ln(R/Ro)
+    temp += 1.0 / (nominalTempC + 273.15);   // + (1/To)
     temp = 1.0 / temp;                       // Invert
-    temp -= 273.15;
+    temp -= 273.15;                          // Convert to Celsius     
 
-    errors = 0;// convert to C
+    errors = 0;                               
     if (temp > 0) {
         temperature = 0.2 * temp + 0.8 * temperature;
     } else {

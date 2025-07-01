@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-inline String make_system_info(ControllerConfig config) {
+inline String make_system_info(ControllerConfigBezzera config) {
     JsonDocument doc;
     doc["hw"] = config.name;
     doc["v"] = BUILD_GIT_VERSION;

@@ -5,6 +5,7 @@
 #include <MAX31855.h>
 #include <peripherals/DigitalInput.h>
 #include <peripherals/DimmedPump.h>
+#include <peripherals/FlowThroughHeater.h>
 #include <peripherals/Heater.h>
 #include <peripherals/Max31855Thermocouple.h>
 #include <peripherals/NTCTemperatureSensor.h>
@@ -24,7 +25,7 @@ class GaggiMateController {
     void setup(void);
     void loop(void);
 
-    void registerBoardConfig(ControllerConfig config);
+    void registerBoardConfig(ControllerConfigBezzera config);
 
   private:
     void detectBoard();
@@ -35,10 +36,10 @@ class GaggiMateController {
     void stopPidAutotune(void);
     void sendSensorData(void);
 
-    ControllerConfig _config = ControllerConfig{};
+    ControllerConfigBezzera _config = ControllerConfigBezzera{};
     NimBLEServerController _ble;
 
-    Max31855Thermocouple *thermocouple = nullptr;
+    NTCTemperatureSensor *temperature_sensor = nullptr;
     Heater *heater = nullptr;
     SimpleRelay *valve = nullptr;
     SimpleRelay *alt = nullptr;
@@ -47,7 +48,7 @@ class GaggiMateController {
     DigitalInput *steamBtn = nullptr;
     PressureSensor *pressureSensor = nullptr;
 
-    std::vector<ControllerConfig> configs;
+    std::vector<ControllerConfigBezzera> configs;
 
     unsigned long lastPingTime = 0;
 

@@ -16,7 +16,7 @@ using temperature_error_callback_t = std::function<void()>;
 class NTCTemperatureSensor : public TemperatureSensor{
     public:
         NTCTemperatureSensor(int pin, float seriesResistor, float nominalResistance, float nominalTempC, float bCoefficient, 
-            const temperature_error_callback_t &error_callback, const temperature_callback_t &callback);
+             const temperature_callback_t &callback, const temperature_error_callback_t &error_callback);
         float read() override;
         bool hasError() override;
 
