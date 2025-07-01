@@ -17,18 +17,23 @@ bool NTCTemperatureSensor::hasError() { return errors >= NTC_MAX_ERRORS; }
 
 void NTCTemperatureSensor::setup() {
     pinMode(pin, INPUT);
-
     xTaskCreate(monitorTask, "NTCTemperatureSensor::monitor", configMINIMAL_STACK_SIZE * 4, this, 1, &taskHandle);
 }
 
 void NTCTemperatureSensor::loop() {
     errors = max(0.0f, errors - 0.1f);
     int adc = analogRead(pin);
-    float resistance = seriesResistor / ((4095.0 / adc) - 1.0);
+
+    if (adc == 0) {
+        errors++;
+        error_callback();
+        return;
+    }
+    
+    float resistance = seriesResistor * ((4095.0 / adc) - 1.0);
     float temp = 0.0f;
 
     // Steinhart-Hart equation for NTC thermistors
-    // T = 1 / (A + B * ln(R) + C * ln(R)^3)
     temp = resistance / nominalResistance;   // (R/Ro)
     temp = log(temp);                        // ln(R/Ro)
     temp /= bCoefficient;                    // 1/B * ln(R/Ro)
