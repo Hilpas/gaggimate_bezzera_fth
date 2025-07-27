@@ -447,6 +447,8 @@ void Controller::activate() {
     delay(100);
     switch (mode) {
     case MODE_BREW:
+        // Increase PID for brew mode
+        clientController.sendPidSettings(DEFAULT_PID);
         startProcess(new BrewProcess(profileManager->getSelectedProfile(),
                                      settings.isVolumetricTarget() && isVolumetricAvailable() ? ProcessTarget::VOLUMETRIC
                                                                                               : ProcessTarget::TIME,
@@ -456,6 +458,8 @@ void Controller::activate() {
         startProcess(new SteamProcess());
         break;
     case MODE_WATER:
+        // Decrease PID for water mode
+        clientController.sendPidSettings(STANDSTILL_PID);
         startProcess(new PumpProcess());
         break;
     default:;
@@ -466,6 +470,9 @@ void Controller::activate() {
 }
 
 void Controller::deactivate() {
+    // Decrease PID when inactive
+    clientController.sendPidSettings(STANDSTILL_PID);
+
     if (currentProcess == nullptr) {
         return;
     }

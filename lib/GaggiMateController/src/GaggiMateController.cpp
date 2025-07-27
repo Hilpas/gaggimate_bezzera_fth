@@ -6,6 +6,7 @@
 #include <freertos/task.h>
 
 GaggiMateController::GaggiMateController() {
+    // disable board detection for now, use my config
     //configs.push_back(GM_STANDARD_REV_1X);
     //configs.push_back(GM_STANDARD_REV_2X);
     //configs.push_back(GM_PRO_REV_1x);
@@ -15,8 +16,9 @@ GaggiMateController::GaggiMateController() {
 
 void GaggiMateController::setup() {
     delay(5000);
-    // detectBoard();       // <-- Disable board detection 
-    _config = GM_BEZZERA;  // <-- Always use my config
+    // disable board detection for now, use my config
+    // detectBoard();       
+    _config = GM_BEZZERA;  
     detectAddon();
 
     String systemInfo = make_system_info(_config);
@@ -25,9 +27,12 @@ void GaggiMateController::setup() {
     this->temperature_sensor = new NTCTemperatureSensor(
         _config.temperaturePin, 10000.0f, 50000.0f, 25.0f, 3976.0f, [this](float temperature) { /* noop */ },
         [this]() { thermalRunawayShutdown(); });
-    this->heater = new Heater(
-        this->temperature_sensor, _config.heaterPin, [this]() { thermalRunawayShutdown(); },
-        [this](float Kp, float Ki, float Kd) { _ble.sendAutotuneResult(Kp, Ki, Kd); });
+    // disable stock heater
+    //this->heater = new Heater(
+    //    this->temperature_sensor, _config.heaterPin, [this]() { thermalRunawayShutdown(); },
+    //    [this](float Kp, float Ki, float Kd) { _ble.sendAutotuneResult(Kp, Ki, Kd); });
+    this->heater = new FlowThroughHeater(
+        this->temperature_sensor, _config.heaterPin, _config.overheatPin, [this]() { thermalRunawayShutdown(); });
     this->valve = new SimpleRelay(_config.valvePin, _config.valveOn);
     this->alt = new SimpleRelay(_config.altPin, _config.altOn);
     if (_config.capabilites.pressure) {
@@ -80,13 +85,14 @@ void GaggiMateController::setup() {
             }
             dimmedPump->setValveState(valve);
         });
-    _ble.registerAltControlCallback([this](bool state) { this->alt->set(state); });
+    _ble.registerAltControlCallback([this](bool state) { this->alt->set(state); });   
     _ble.registerPidControlCallback([this](float Kp, float Ki, float Kd) { this->heater->setTunings(Kp, Ki, Kd); });
     _ble.registerPingCallback([this]() {
         lastPingTime = millis();
         ESP_LOGV(LOG_TAG, "Ping received, system is alive");
     });
-    _ble.registerAutotuneCallback([this](int goal, int windowSize) { this->heater->autotune(goal, windowSize); });
+    // disable autotune from Display, use the preconfigured values
+    //_ble.registerAutotuneCallback([this](int goal, int windowSize) { this->heater->autotune(goal, windowSize); });
     _ble.registerTareCallback([this]() {
         if (!_config.capabilites.dimming) {
             return;

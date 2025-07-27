@@ -5,8 +5,8 @@
 #include <MAX31855.h>
 #include <peripherals/DigitalInput.h>
 #include <peripherals/DimmedPump.h>
-#include <peripherals/FlowThroughHeater.h>
 #include <peripherals/Heater.h>
+#include <peripherals/FlowThroughHeater.h>
 #include <peripherals/Max31855Thermocouple.h>
 #include <peripherals/NTCTemperatureSensor.h>
 #include <peripherals/PressureSensor.h>
@@ -40,7 +40,7 @@ class GaggiMateController {
     NimBLEServerController _ble;
 
     NTCTemperatureSensor *temperature_sensor = nullptr;
-    Heater *heater = nullptr;
+    FlowThroughHeater *heater = nullptr;
     SimpleRelay *valve = nullptr;
     SimpleRelay *alt = nullptr;
     Pump *pump = nullptr;

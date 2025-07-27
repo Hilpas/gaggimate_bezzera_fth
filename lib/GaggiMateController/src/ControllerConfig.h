@@ -56,6 +56,7 @@ struct ControllerConfigBezzera {
     uint16_t autodetectValue;
 
     uint8_t heaterPin;
+    uint8_t overheatPin = 0;
     uint8_t pumpPin;
     uint8_t pumpSensePin = 0;
     uint8_t pumpOn;
@@ -211,11 +212,12 @@ const ControllerConfig GM_PRO_LEGO = {.name = "GaggiMate Pro Lego Build",
 const ControllerConfigBezzera GM_BEZZERA = {.name = "GaggiMate Bezzera Build",
                                       .autodetectValue = 0,
                                       .heaterPin = 10,
+                                      .overheatPin = 2,     
                                       .pumpPin = 9,
                                       .pumpSensePin = 39,
                                       .pumpOn = 1,          // TODO
                                       .valvePin = 7,
-                                      .valveOn = 1,         // TODO
+                                      .valveOn = 0,         // TODO
                                       .altPin = 0,          // NC
                                       .altOn = 0,           // NC
                                       .pressureScl = 0,     // capability currently disabled // TODO Analog Sensor

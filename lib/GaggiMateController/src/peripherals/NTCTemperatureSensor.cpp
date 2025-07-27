@@ -43,7 +43,9 @@ void NTCTemperatureSensor::loop() {
 
     errors = 0;                               
     if (temp > 0) {
-        temperature = 0.2 * temp + 0.8 * temperature;
+        //disable filtration for now
+        //temperature = 0.2 * temp + 0.8 * temperature;
+        temperature = temp; 
     } else {
         errors++;
     }
