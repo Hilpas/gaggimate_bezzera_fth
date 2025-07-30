@@ -13,7 +13,7 @@ NTCTemperatureSensor::NTCTemperatureSensor(const int pin, const float seriesResi
 
 float NTCTemperatureSensor::read() { return temperature; }
 
-bool NTCTemperatureSensor::hasError() { return errors >= NTC_MAX_ERRORS; }
+bool NTCTemperatureSensor::isErrorState() { return errors >= NTC_MAX_ERRORS; }
 
 void NTCTemperatureSensor::setup() {
     pinMode(pin, INPUT);

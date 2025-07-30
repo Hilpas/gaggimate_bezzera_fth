@@ -19,6 +19,14 @@ void DimmedPump::setup() {
 void DimmedPump::loop() {
     _currentPressure = _pressureSensor->getRawPressure();
     updatePower();
+
+    // Log the current flow for debugging purposes
+    static uint32_t lastLogTime = 0;
+    uint32_t now = millis();
+    if (now - lastLogTime >= 1000) {
+        ESP_LOGI(LOG_TAG, "Flow rate: %.2f ml/min", getFlow() * 60.0f);
+        lastLogTime = now;
+    }
 }
 
 void DimmedPump::setPower(float setpoint) {

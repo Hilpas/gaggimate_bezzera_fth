@@ -93,7 +93,7 @@ void PressureController::computePumpDutyCycle() {
     if (_filteredPressureSensor < 0.5 && *_rawSetpoint != 0) {
         reset();
         *_ctrlOutput = 100.0f;
-        ESP_LOGI("PRESSURIZING", "Not there yet");
+        ESP_LOGV("PRESSURIZING", "Not there yet");
         return;
     }
     // COMMANDE IS ACTUALLY ZERO: The profil is asking for no pressure (ex: blooming phase)
@@ -138,11 +138,11 @@ void PressureController::computePumpDutyCycle() {
     if ((sign(error) == -sign(alpha)) && (fabs(alpha) > 1.0f)) {
         _errorInteg -= error * _dt;
         iterm = Ki * _errorInteg;
-        ESP_LOGI("CLAMP I", "");
+        ESP_LOGV("CLAMP I", "");
     }
     alpha = _Co / Qa * (-_lambda * error - K * sat_s) - iterm;
     *_ctrlOutput = std::clamp(alpha * 100.0f, 0.0f, 100.0f);
-    ESP_LOGI("", "P:%.2f(bar)\tdP:%.2e(bar/s)\tP_ref:%.2e(bar)\tdP_ref:%.2e(bar/s)\tIterm:%.1f%\tKsat:%1.2e\tOutput:%.1f%", P,
+    ESP_LOGV("", "P:%.2f(bar)\tdP:%.2e(bar/s)\tP_ref:%.2e(bar)\tdP_ref:%.2e(bar/s)\tIterm:%.1f%\tKsat:%1.2e\tOutput:%.1f%", P,
              dP_actual, P_ref, dP_ref, iterm, K * sat_s, *_ctrlOutput);
 }
 

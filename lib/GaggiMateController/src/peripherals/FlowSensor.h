@@ -5,7 +5,7 @@
 #include <functional>
 
 constexpr int FLOW_LOOP_INTERVAL_MS = 1000;
-constexpr float ML_PER_PULSE = 0.4797f;
+constexpr float ML_PER_PULSE = 0.4797f; // according to datasheet 0.5195mL/Pulse, but adjusted due to calibration
 using flow_callback_t = std::function<void(float)>;
 
 class FlowSensor {

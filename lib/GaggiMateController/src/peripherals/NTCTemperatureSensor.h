@@ -18,7 +18,7 @@ class NTCTemperatureSensor : public TemperatureSensor{
         NTCTemperatureSensor(int pin, float seriesResistor, float nominalResistance, float nominalTempC, float bCoefficient, 
              const temperature_callback_t &callback, const temperature_error_callback_t &error_callback);
         float read() override;
-        bool hasError() override;
+        bool isErrorState() override;
 
         void setup();
         void loop();
