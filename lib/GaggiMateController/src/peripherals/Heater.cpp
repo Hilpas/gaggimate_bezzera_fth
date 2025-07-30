@@ -33,7 +33,12 @@ void Heater::setupAutotune(int goal, int windowSize) {
 }
 
 void Heater::loop() {
-    if (temperature <= 0.0f || setpoint <= 0.0f) {
+    if (!sensor->isErrorState() && autotuning) {
+        loopAutotune();
+        return;
+    }
+
+    if (sensor->isErrorState() || setpoint <= 0.0f) {
         simplePid->setMode(SimplePID::Control::manual);
         digitalWrite(heaterPin, LOW);
         relayStatus = false;
@@ -42,11 +47,7 @@ void Heater::loop() {
     }
     simplePid->setMode(SimplePID::Control::automatic);
 
-    if (autotuning) {
-        loopAutotune();
-    } else {
-        loopPid();
-    }
+    loopPid();
 }
 
 void Heater::setSetpoint(float setpoint) {
@@ -110,12 +111,6 @@ void Heater::loopAutotune() {
     pid_callback(autotuner->getKp() * 1000.0f, autotuner->getKi() * 1000.0f, autotuner->getKd() * 1000.0f);
 
     setTunings(autotuner->getKp() * 1000.0f, autotuner->getKi() * 1000.0f, autotuner->getKd() * 1000.0f);
-    // simplePid->computeSetpointDelay(autotuner->getSystemDelay());
-    // simplePid->setKFF(autotuner->getKff()*1000);
-    // simplePid->setMode(SimplePID::Control::automatic);
-
-    // simplePid->setSetpointRateLimits(-INFINITY, autotuner->getSystemGain() * 0.8);
-    // simplePid->setSetpointFilterFrequency(autotuner->getCrossoverFreq()/2);
 
     ESP_LOGI(LOG_TAG, "Autotuning finished: Kp=%.4f, Ki=%.4f, Kd=%.4f, Kff=%.4f\n", autotuner->getKp() * 1000.0f,
              autotuner->getKi() * 1000.0f, autotuner->getKd() * 1000.0f, autotuner->getKff() * 1000.0f);
@@ -151,17 +146,16 @@ float Heater::softPwm(uint32_t windowSize) {
 void Heater::plot(float optimumOutput, float outputScale, uint8_t everyNth) {
     if (plotCount >= everyNth) {
         plotCount = 1;
-        ESP_LOGI(LOG_TAG, "Setpoint: %.2f, Input: %.2f, Output: %.2f, Kp: %.2f, Ki: %.2f, Kd: %.2f, Filtered Setpoint: %.2f",
-                 setpoint, temperature, optimumOutput * outputScale, simplePid->getKp(), simplePid->getKi(), simplePid->getKd(),
-                 simplePid->getSetpointFiltered());
+        ESP_LOGV(LOG_TAG, "PID Plot: output=%.2f, input=%.2f, setpoint=%.2f", optimumOutput * outputScale, temperature, setpoint);
     } else
         plotCount++;
 }
 
 void Heater::loopTask(void *arg) {
+    TickType_t lastWake = xTaskGetTickCount();
     auto *heater = static_cast<Heater *>(arg);
     while (true) {
         heater->loop();
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        xTaskDelayUntil(&lastWake, pdMS_TO_TICKS(10));
     }
 }
