@@ -52,7 +52,7 @@ void DimmedPump::updatePower() {
     switch (_mode) {
     case ControlMode::PRESSURE:
         _power = calculatePowerForPressure(_targetPressure, _currentPressure, _flowLimit);
-        ESP_LOGI("DimmedPump", "Calculating power for pressure: %.2f", _power);
+        ESP_LOGV("DimmedPump", "Calculating power for pressure: %.2f", _power);
         break;
 
     case ControlMode::FLOW:

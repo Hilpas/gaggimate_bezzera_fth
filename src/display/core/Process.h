@@ -159,11 +159,11 @@ class BrewProcess : public Process {
 
 class SteamProcess : public Process {
   public:
-    float pumpValue = 4.f;
+    float pumpValue = 2.f;
     int duration;
     unsigned long started;
 
-    explicit SteamProcess(int duration = STEAM_SAFETY_DURATION_MS, float pumpValue = 4.f)
+    explicit SteamProcess(int duration = STEAM_SAFETY_DURATION_MS, float pumpValue = 2.f)
         : pumpValue(pumpValue), duration(duration) {
         started = millis();
     }

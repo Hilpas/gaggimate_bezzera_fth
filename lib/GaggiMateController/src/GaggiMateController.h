@@ -6,6 +6,7 @@
 #include <peripherals/DigitalInput.h>
 #include <peripherals/DimmedPump.h>
 #include <peripherals/Heater.h>
+#include <peripherals/FlowSensor.h>
 #include <peripherals/FlowThroughHeater.h>
 #include <peripherals/Max31855Thermocouple.h>
 #include <peripherals/NTCTemperatureSensor.h>
@@ -41,6 +42,7 @@ class GaggiMateController {
 
     NTCTemperatureSensor *temperature_sensor = nullptr;
     FlowThroughHeater *heater = nullptr;
+    FlowSensor *flowSensor = nullptr;
     SimpleRelay *valve = nullptr;
     SimpleRelay *alt = nullptr;
     Pump *pump = nullptr;

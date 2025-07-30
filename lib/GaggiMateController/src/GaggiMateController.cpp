@@ -27,6 +27,7 @@ void GaggiMateController::setup() {
     this->temperature_sensor = new NTCTemperatureSensor(
         _config.temperaturePin, 10000.0f, 50000.0f, 25.0f, 3976.0f, [this](float temperature) { /* noop */ },
         [this]() { thermalRunawayShutdown(); });
+    this->flowSensor = new FlowSensor(_config.flowSensorPin, [this](float flowRate) { /* noop */ });
     // disable stock heater
     //this->heater = new Heater(
     //    this->temperature_sensor, _config.heaterPin, [this]() { thermalRunawayShutdown(); },
@@ -52,6 +53,7 @@ void GaggiMateController::setup() {
     this->pump->setup();
     this->brewBtn->setup();
     this->steamBtn->setup();
+    this->flowSensor->setup();
     if (_config.capabilites.pressure) {
         pressureSensor->setup();
         _ble.registerPressureScaleCallback([this](float scale) { this->pressureSensor->setScale(scale); });

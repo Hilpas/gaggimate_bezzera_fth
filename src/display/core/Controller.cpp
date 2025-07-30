@@ -455,6 +455,7 @@ void Controller::activate() {
                                      settings.getBrewDelay()));
         break;
     case MODE_STEAM:
+        clientController.sendPidSettings(DEFAULT_PID);
         startProcess(new SteamProcess());
         break;
     case MODE_WATER:

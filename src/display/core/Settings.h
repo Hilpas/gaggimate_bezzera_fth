@@ -113,7 +113,7 @@ class Settings {
 
     String selectedProfile;
     bool profilesMigrated = false;
-    int targetSteamTemp = 155;
+    int targetSteamTemp = 110;
     int targetWaterTemp = 80;
     int temperatureOffset = DEFAULT_TEMPERATURE_OFFSET;
     float pressureScaling = DEFAULT_PRESSURE_SCALING;

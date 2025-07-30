@@ -68,6 +68,8 @@ struct ControllerConfigBezzera {
     uint8_t pressureScl = 0;
     uint8_t pressureSda = 0;
 
+    uint8_t flowSensorPin = 0; 
+
     uint8_t maxSckPin;
     uint8_t maxCsPin;
     uint8_t maxMisoPin;
@@ -215,13 +217,14 @@ const ControllerConfigBezzera GM_BEZZERA = {.name = "GaggiMate Bezzera Build",
                                       .overheatPin = 2,     
                                       .pumpPin = 9,
                                       .pumpSensePin = 39,
-                                      .pumpOn = 1,          // TODO
+                                      .pumpOn = 1,          
                                       .valvePin = 7,
-                                      .valveOn = 0,         // TODO
-                                      .altPin = 0,          // NC
-                                      .altOn = 0,           // NC
-                                      .pressureScl = 0,     // capability currently disabled // TODO Analog Sensor
-                                      .pressureSda = 0,     // capability currently disabled // TODO Analog Sensor
+                                      .valveOn = 0,        
+                                      .altPin = 6,          
+                                      .altOn = 0,           
+                                      .pressureScl = 41,    
+                                      .pressureSda = 42, 
+                                      .flowSensorPin = 36,
                                       .maxSckPin = 0,       // not needed due to NTC
                                       .maxCsPin = 0,        // not needed due to NTC
                                       .maxMisoPin = 0,      // not needed due to NTC                                   
@@ -237,8 +240,8 @@ const ControllerConfigBezzera GM_BEZZERA = {.name = "GaggiMate Bezzera Build",
                                       .ext5Pin = 0,
                                       .temperaturePin = 4,  
                                       .capabilites = {
-                                          .dimming = false,
-                                          .pressure = false,
+                                          .dimming = true,
+                                          .pressure = true,
                                           .ssrPump = false,
                                       }};
 
