@@ -13,6 +13,7 @@ public:
     FlowSensor(uint8_t pin, const flow_callback_t &callback = nullptr);
     ~FlowSensor() = default;
 
+    float read();
     void setup();
     void loop();
     inline float getFlowRate() const { return _flowRate; }

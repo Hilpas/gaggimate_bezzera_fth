@@ -3,7 +3,8 @@
 
 #include "NTCTemperatureSensor.h"
 #include "TemperatureSensor.h"
-#include "SimplePID.h"
+#include "FlowSensor.h"
+#include "FlowThroughPID.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -11,7 +12,7 @@ using heater_error_callback_t = std::function<void()>;
 
 class FlowThroughHeater {
   public:
-      FlowThroughHeater(TemperatureSensor *sensor, uint8_t heaterPin, uint8_t overheatPin, const heater_error_callback_t &error_callback);
+    FlowThroughHeater(TemperatureSensor *sensor_temperature, FlowSensor *sensor_flow, uint8_t heaterPin, uint8_t overheatPin, const heater_error_callback_t &error_callback);
     void setup();
     void loop();
 
@@ -24,15 +25,17 @@ class FlowThroughHeater {
     float softPwm(uint32_t windowSize);
     void plot(float optimumOutput, float outputScale, uint8_t everyNth);
 
-    TemperatureSensor *sensor;
+    TemperatureSensor *sensor_temperature;
+    FlowSensor *sensor_flow;
     uint8_t heaterPin;
     uint8_t overheatPin;
     xTaskHandle taskHandle;
-    SimplePID *simplePid = nullptr;
+    FlowThroughPID *flowThroughPID = nullptr;
 
     heater_error_callback_t error_callback;
 
     float temperature = 0.0f;
+    float flow = 0.0f;
     float output = 0.0f;
     float setpoint = 0.0f;
     float Kp = 1.0;

@@ -4,6 +4,8 @@
 FlowSensor::FlowSensor(uint8_t pin, const flow_callback_t &callback)
     : _pin(pin), _callback(callback) {}
 
+float FlowSensor::read() { return _flowRate; }
+
 void FlowSensor::setup() {
     pinMode(_pin, INPUT_PULLUP);
     attachInterruptArg(_pin, &FlowSensor::isrHandlerStatic, this, RISING);

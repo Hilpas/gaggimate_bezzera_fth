@@ -3,12 +3,12 @@
 #include <algorithm>
 
 constexpr float TUNER_INPUT_SPAN = 160.0f;
-constexpr float TUNER_OUTPUT_SPAN = 1000.0f; //-> 1Hz
+constexpr float TUNER_OUTPUT_SPAN = 1000.0f; // this is the relay duty cycle 1000ms is 100% duty cycle
 
-FlowThroughHeater::FlowThroughHeater(TemperatureSensor *sensor, uint8_t heaterPin, uint8_t overheatPin, const heater_error_callback_t &error_callback)
-    : sensor(sensor), heaterPin(heaterPin), overheatPin(overheatPin), taskHandle(nullptr), error_callback(error_callback) {
+FlowThroughHeater::FlowThroughHeater(TemperatureSensor *sensor_temperature, FlowSensor *sensor_flow, uint8_t heaterPin, uint8_t overheatPin, const heater_error_callback_t &error_callback)
+    : sensor_temperature(sensor_temperature), sensor_flow(sensor_flow), heaterPin(heaterPin), overheatPin(overheatPin), taskHandle(nullptr), error_callback(error_callback) {
 
-    simplePid = new SimplePID(&output, &temperature, &setpoint);
+    flowThroughPID = new FlowThroughPID(&output, &temperature, &flow, &setpoint);
 }
 
 void FlowThroughHeater::setup() {
@@ -20,25 +20,25 @@ void FlowThroughHeater::setup() {
 
 void FlowThroughHeater::setupPid() {
 
-    simplePid->setSamplingFrequency(TUNER_OUTPUT_SPAN / 1000.0f); 
-    simplePid->setCtrlOutputLimits(0.0f, TUNER_OUTPUT_SPAN);
-    simplePid->activateSetPointFilter(false);
-    simplePid->activateFeedForward(false);
-    simplePid->setKp(Kp);
-    simplePid->setKi(Ki);
-    simplePid->setKd(Kd);
-    simplePid->reset();
+    flowThroughPID->setSamplingFrequency(TUNER_OUTPUT_SPAN / 1000.0f);
+    flowThroughPID->setCtrlOutputLimits(0.0f, TUNER_OUTPUT_SPAN);
+    flowThroughPID->activateFeedForward(true);
+    flowThroughPID->setKp(Kp);
+    flowThroughPID->setKi(Ki);
+    flowThroughPID->setKd(Kd);
+    flowThroughPID->reset();
 }
 
 void FlowThroughHeater::loop() {
     if (temperature <= 0.0f || setpoint <= 0.0f || digitalRead(overheatPin) == HIGH) {
-        simplePid->setMode(SimplePID::Control::manual);
+        flowThroughPID->setMode(FlowThroughPID::Control::manual);
         digitalWrite(heaterPin, LOW);
         relayStatus = false;
-        temperature = sensor->read();
+        temperature = sensor_temperature->read();
+        flow = sensor_flow->read();
         return;
     }
-    simplePid->setMode(SimplePID::Control::automatic);
+    flowThroughPID->setMode(FlowThroughPID::Control::automatic);
 
     loopPid();
 }
@@ -51,17 +51,18 @@ void FlowThroughHeater::setSetpoint(float setpoint) {
 }
 
 void FlowThroughHeater::setTunings(float Kp, float Ki, float Kd) {
-    if (simplePid->getKp() != Kp || simplePid->getKi() != Ki || simplePid->getKd() != Kd) {
-        simplePid->setControllerPIDGains(Kp, Ki, Kd, 0.0f);
-        simplePid->reset();
+    if (flowThroughPID->getKp() != Kp || flowThroughPID->getKi() != Ki || flowThroughPID->getKd() != Kd) {
+        flowThroughPID->setControllerPIDGains(Kp, Ki, Kd, 0.0f);
+        flowThroughPID->reset();
         ESP_LOGV(LOG_TAG, "Set tunings to Kp: %f, Ki: %f, Kd: %f", Kp, Ki, Kd);
     }
 }
 
 void FlowThroughHeater::loopPid() {
     softPwm(TUNER_OUTPUT_SPAN);
-    temperature = sensor->read();
-    if (simplePid->update()) {
+    temperature = sensor_temperature->read();
+    flow = sensor_flow->read();
+    if (flowThroughPID->update()) {
         plot(output, 1.0f, 1);
     }
 }
@@ -94,9 +95,8 @@ float FlowThroughHeater::softPwm(uint32_t windowSize) {
 void FlowThroughHeater::plot(float optimumOutput, float outputScale, uint8_t everyNth) {
     if (plotCount >= everyNth) {
         plotCount = 1;
-        ESP_LOGI(LOG_TAG, "Setpoint: %.2f, Input: %.2f, Output: %.2f, Kp: %.2f, Ki: %.2f, Kd: %.2f, Filtered Setpoint: %.2f",
-                 setpoint, temperature, optimumOutput * outputScale, simplePid->getKp(), simplePid->getKi(), simplePid->getKd(),
-                 simplePid->getSetpointFiltered());
+        ESP_LOGI(LOG_TAG, "Setpoint: %.2f, Input: %.2f, Output: %.2f, Kp: %.2f, Ki: %.2f, Kd: %.2f",
+                 setpoint, temperature, optimumOutput * outputScale, flowThroughPID->getKp(), flowThroughPID->getKi(), flowThroughPID->getKd());
     } else
         plotCount++;
 }

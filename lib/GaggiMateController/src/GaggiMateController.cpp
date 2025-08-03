@@ -33,7 +33,7 @@ void GaggiMateController::setup() {
     //    this->temperature_sensor, _config.heaterPin, [this]() { thermalRunawayShutdown(); },
     //    [this](float Kp, float Ki, float Kd) { _ble.sendAutotuneResult(Kp, Ki, Kd); });
     this->heater = new FlowThroughHeater(
-        this->temperature_sensor, _config.heaterPin, _config.overheatPin, [this]() { thermalRunawayShutdown(); });
+        this->temperature_sensor, this->flowSensor, _config.heaterPin, _config.overheatPin, [this]() { thermalRunawayShutdown(); });
     this->valve = new SimpleRelay(_config.valvePin, _config.valveOn);
     this->alt = new SimpleRelay(_config.altPin, _config.altOn);
     if (_config.capabilites.pressure) {
