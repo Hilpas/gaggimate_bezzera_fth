@@ -38,7 +38,7 @@ class FlowThroughHeater {
     float flow = 0.0f;
     float output = 0.0f;
     float setpoint = 0.0f;
-    float Kp = 1.0;
+    float Kp = 0.2;
     float Ki = 0.0;
     float Kd = 0.0;
     int plotCount = 0;

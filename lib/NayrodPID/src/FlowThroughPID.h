@@ -47,13 +47,13 @@ class FlowThroughPID {
 
     // feedback controler
     float ctrlOutputLimits[2] = {-INFINITY, INFINITY}; // Control output limits {lower, upper}
-    float ctrl_freq_sampling = 10.0f;                   // Control frequency (Hz)
-    bool isInitialized = false;                        // Flag to check if the controller is initialized
-    float gainKp = 0.0f;                               // Proportional gain
-    float gainKi = 0.0f;                                // Integral gain (multiplies by Kp if Kp,Ki,Kd are strictly parallèle (no factoring by Kp))
-    float gainKd = 0.0f;                                // Derivative gain (by default no derivative term)
-    float gainFF = 0.0f;                               // Feedforward gain
-    float feedback_integralState = 0.0f;                // Integral state
+    float ctrl_freq_sampling = 0.1f;                   // Control frequency (Hz)
+    bool isInitialized = false;                           // Flag to check if the controller is initialized
+    float gainKp = 0.0f;                                 // Proportional gain
+    float gainKi = 0.0f;                                  // Integral gain (multiplies by Kp if Kp,Ki,Kd are strictly parallèle (no factoring by Kp))
+    float gainKd = 0.0f;                                  // Derivative gain (by default no derivative term)
+    float gainFF = 0.0f;                                 // Feedforward gain
+    float feedback_integralState = 0.0f;                  // Integral state
     float prevError = 0.0f;                             // Previous error for derivative calculation
     float prevOutput = 0.0f;                            // Previous output for derivative calculation
     Control mode = Control::manual;

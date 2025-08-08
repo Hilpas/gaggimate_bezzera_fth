@@ -6,7 +6,7 @@
 #include <freertos/task.h>
 #include <functional>
 
-constexpr int NTC_UPDATE_INTERVAL = 250;
+constexpr int NTC_UPDATE_INTERVAL = 50;
 constexpr int NTC_MAX_ERRORS = 20;
 constexpr double NTC_MAX_SAFE_TEMP = 170.0;
 

@@ -464,14 +464,14 @@ void Controller::activate() {
     switch (mode) {
     case MODE_BREW:
         // Increase PID for brew mode
-        clientController.sendPidSettings(DEFAULT_PID);
+        clientController.sendPidSettings(settings.getPid());
         startProcess(new BrewProcess(profileManager->getSelectedProfile(),
                                      settings.isVolumetricTarget() && isVolumetricAvailable() ? ProcessTarget::VOLUMETRIC
                                                                                               : ProcessTarget::TIME,
                                      settings.getBrewDelay()));
         break;
     case MODE_STEAM:
-        clientController.sendPidSettings(DEFAULT_PID);
+        clientController.sendPidSettings(settings.getPid());
         startProcess(new SteamProcess(STEAM_SAFETY_DURATION_MS, settings.getSteamPumpPercentage()));
         break;
     case MODE_WATER:

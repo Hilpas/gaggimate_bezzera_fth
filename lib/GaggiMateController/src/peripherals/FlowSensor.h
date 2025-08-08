@@ -14,6 +14,7 @@ public:
     ~FlowSensor() = default;
 
     float read();
+    float read_g_s();
     void setup();
     void loop();
     inline float getFlowRate() const { return _flowRate; }

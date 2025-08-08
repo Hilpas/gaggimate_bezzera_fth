@@ -47,6 +47,13 @@ class DimmedPump : public Pump {
     int _valveStatus = 0;
     int _cps = MAX_FREQ;
 
+    // Ramp start test
+    uint32_t rampStartTime = 0;
+    const float rampDurationMs = 1.0f; 
+    bool rampStart = false;
+    const float rampStartValue = 48.0f; // Start ramp at 20
+    const float targetPumpPower = 100.0f; // Target pump power for ramp
+
     float _opvPressure = 0.0f;
 
     static constexpr float BASE_FLOW_RATE = 0.25f;
@@ -64,3 +71,4 @@ class DimmedPump : public Pump {
 };
 
 #endif // DIMMEDPUMP_H
+

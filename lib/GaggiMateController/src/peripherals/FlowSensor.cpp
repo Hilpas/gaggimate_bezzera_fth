@@ -5,6 +5,7 @@ FlowSensor::FlowSensor(uint8_t pin, const flow_callback_t &callback)
     : _pin(pin), _callback(callback) {}
 
 float FlowSensor::read() { return _flowRate; }
+float FlowSensor::read_g_s() { return _flowRate / 60.0f; }
 
 void FlowSensor::setup() {
     pinMode(_pin, INPUT_PULLUP);

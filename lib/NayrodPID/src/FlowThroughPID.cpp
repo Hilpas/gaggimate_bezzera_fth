@@ -66,7 +66,8 @@ bool FlowThroughPID::update() {
     float sumPID = Pout + Iout + Dout + FFoutput;
     float sumPIDsat = constrain(sumPID, ctrlOutputLimits[0], ctrlOutputLimits[1]);
 
-    Serial.printf("FeedForward: %.2f, PID: %.2f\n", FFoutput, sumPIDsat);
+    // Debugging feed forward
+    //Serial.printf("FeedForward: %.2f, PID: %.2f\n", FFoutput, sumPIDsat);
 
     // Antiwindup clamping
     bool isSaturated = (sumPID < ctrlOutputLimits[0] || sumPID > ctrlOutputLimits[1]); // Check if the output is saturated
