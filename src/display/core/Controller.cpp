@@ -195,6 +195,7 @@ void Controller::loop() {
             ESP_LOGI("Controller", "setting pressure scale to %.2f\n", settings.getPressureScaling());
             setPressureScale();
             clientController.sendPidSettings(settings.getPid());
+            clientController.sendFlowPidSettings(settings.getFlowPid());
 
             pluginManager->trigger("controller:ready");
         }
@@ -309,6 +310,8 @@ int Controller::getTargetTemp() {
 
 void Controller::setTargetTemp(int temperature) {
     pluginManager->trigger("boiler:targetTemperature:change", "value", temperature);
+    // Also update flow pid
+    clientController.sendFlowPidSettings(settings.getFlowPid());
     switch (mode) {
     case MODE_BREW:
     case MODE_GRIND:

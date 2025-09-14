@@ -398,6 +398,20 @@ export function Settings() {
             />
           </div>
           <div>
+            <label htmlFor="flowPid" className="block font-medium text-gray-700 dark:text-gray-400">
+              Flow PID (Kp, Ki, Kd)
+            </label>
+            <input
+              id="flowPid"
+              name="flowPid"
+              type="text"
+              className="input-field"
+              placeholder="15.0, 20.0, 5.0"
+              value={formData.flowPid}
+              onChange={onChange('flowPid')}
+            />
+          </div>
+          <div>
             <label htmlFor="temperatureOffset" className="block font-medium text-gray-700 dark:text-gray-400">
               Temperature Offset
             </label>

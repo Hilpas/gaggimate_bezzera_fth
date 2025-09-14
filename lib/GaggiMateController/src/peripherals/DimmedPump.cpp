@@ -2,9 +2,10 @@
 
 #include <GaggiMateController.h>
 
-DimmedPump::DimmedPump(uint8_t ssr_pin, uint8_t sense_pin, PressureSensor *pressure_sensor)
-    : _ssr_pin(ssr_pin), _sense_pin(sense_pin), _psm(_sense_pin, _ssr_pin, 100, FALLING, 2, 4), _pressureSensor(pressure_sensor),
-      _pressureController(0.03f, &_targetPressure, &_currentPressure, &_controllerPower, &_valveStatus) {
+DimmedPump::DimmedPump(uint8_t ssr_pin, uint8_t sense_pin, PressureSensor *pressure_sensor, FlowSensor *flow_sensor)
+    : _ssr_pin(ssr_pin), _sense_pin(sense_pin), _psm(_sense_pin, _ssr_pin, 100, FALLING, 2, 4), _pressureSensor(pressure_sensor), _flowSensor(flow_sensor),
+      _pressureController(0.03f, &_targetPressure, &_currentPressure, &_controllerPower, &_valveStatus), 
+      _flowController(0.03f, &_targetFlow, &_currentFlow, &_controllerFlowPower, &_valveStatus) {
     _psm.set(0);
 }
 
@@ -18,6 +19,7 @@ void DimmedPump::setup() {
 
 void DimmedPump::loop() {
     _currentPressure = _pressureSensor->getRawPressure();
+    _currentFlow = _flowSensor->read_g_s();
     updatePower();
 
     // Log the current flow for debugging purposes
@@ -58,6 +60,7 @@ void DimmedPump::loopTask(void *arg) {
 
 void DimmedPump::updatePower() {
     _pressureController.update();
+    _flowController.update();
 
     // Ramp start logic
     //if (_power > 0 && !rampStart) {
@@ -67,16 +70,16 @@ void DimmedPump::updatePower() {
     //    rampStart = false;
     //}
 
-    switch (_mode) {
-    case ControlMode::PRESSURE:
-        _power = calculatePowerForPressure(_targetPressure, _currentPressure, _flowLimit);
-        break;
-
-    case ControlMode::FLOW:
-        _power = calculatePowerForFlow(_targetFlow, _currentPressure, _pressureLimit);
-        break;
-
-    case ControlMode::POWER:
+    //switch (_mode) {
+    //case ControlMode::PRESSURE:
+    //    _power = calculatePowerForPressure(_targetPressure, _currentPressure, _flowLimit);
+    //    break;
+//
+    //case ControlMode::FLOW:
+    //    _power = calculatePowerForFlow(_targetFlow, _currentPressure, _pressureLimit);
+    //    break;
+//
+    //case ControlMode::POWER:
         // Ramp start test
 
         // Erst Rampe, dann ab Druck 3 bar auf 50%
@@ -92,39 +95,62 @@ void DimmedPump::updatePower() {
         //    } 
         //}
         
-         //Erst 20% bis 3 bar, dann Rampe auf 50%
-        if (_power > 0 && _currentPressure < 4.0f) 
-        {
-            _power = rampStartValue;
-        } 
-        else if (_power > 0 && _currentPressure >= 4.0f ) 
-        {
-            if (!rampStart) {
-                rampStartTime = millis();
-                rampStart = true;
-            }
-        
-            uint32_t now = millis();
-            float elapsed = now - rampStartTime;
-        
-            if (elapsed < rampDurationMs) {
-               // Ramp from 5 to targetPumpPower
-                _power = rampStartValue + ((targetPumpPower - rampStartValue) * (elapsed / rampDurationMs));
-            }   
-            else
-            {
-                _power = targetPumpPower;
-            }     
-        } 
-        else if(_power == 0 && rampStart) 
-        {
-            rampStart = false;
-        }
-        
-        break;
-    }
+        // //Erst 20% bis 3 bar, dann Rampe auf 50%
+        //if (_power > 0 && _currentPressure < 4.0f) 
+        //{
+        //    _power = rampStartValue;
+        //} 
+        //else if (_power > 0 && _currentPressure >= 4.0f ) 
+        //{
+        //    if (!rampStart) {
+        //        rampStartTime = millis();
+        //        rampStart = true;
+        //    }
+        //
+        //    uint32_t now = millis();
+        //    float elapsed = now - rampStartTime;
+        //
+        //    if (elapsed < rampDurationMs) {
+        //       // Ramp from 5 to targetPumpPower
+        //        _power = rampStartValue + ((targetPumpPower - rampStartValue) * (elapsed / rampDurationMs));
+        //    }   
+        //    else
+        //    {
+        //        _power = targetPumpPower;
+        //    }     
+        //} 
+        //else if(_power == 0 && rampStart) 
+        //{
+        //    rampStart = false;
+        //}
 
-    //printf("Power: %2f, Pressure: %2f\n", _power, _currentPressure);
+        if (_power > 0 && _currentPressure < 6.0f) 
+        {
+            //4.2g/s ~250ml/min
+            setFlowTarget(4.2f, 0.0f);
+            float powerInt = calculatePowerForFlow(4.2f, _currentPressure, _pressureLimit);
+            _power = std::clamp(powerInt, 0.0001f, 100.0f);
+            printf("Mode: %d, Power: %2f, FlowSetpoint: %2f, CurrentFlow: %2f\n", static_cast<int>(_mode), powerInt, _targetFlow, _currentFlow);
+        }
+        else if (_power > 0 && _currentPressure >= 6.0f) 
+        {
+            setPressureTarget(9.0f, 0.0f);
+             float powerInt = calculatePowerForPressure(_targetPressure, _currentPressure, _flowLimit);
+            _power = std::clamp(powerInt, 0.0001f, 100.0f);
+            printf("Mode: %d, Power: %2f, PressureSetpoint: %2f, CurrentPressure: %2f\n", static_cast<int>(_mode), _power, _targetPressure, _currentPressure);
+        }
+        else if (_power == 0) 
+        {
+            _targetFlow = 0.0f;
+            _targetPressure = 0.0f;
+            _pressureLimit = 0.0f;
+            _flowLimit = 0.0f;
+        }  
+
+        //break;
+    //}
+
+    // printf("Mode: %d, Power: %2f, Pressure: %2f\n", static_cast<int>(_mode), _power, _currentPressure);
 
     _psm.set(static_cast<int>(_power));
 }
@@ -140,21 +166,28 @@ float DimmedPump::calculatePowerForPressure(float targetPressure, float currentP
 }
 
 float DimmedPump::calculatePowerForFlow(float targetFlow, float currentPressure, float pressureLimit) const {
-    float maxFlow = calculateFlowRate(currentPressure) * _cps;
-    float powerRatio = std::clamp(targetFlow / maxFlow, 0.0f, 1.0f);
-    float basePower = powerRatio * 100.0f;
+    //float maxFlow = calculateFlowRate(currentPressure) * _cps;
+    //float powerRatio = std::clamp(targetFlow / maxFlow, 0.0f, 1.0f);
+    //float basePower = powerRatio * 100.0f;
 
     if (pressureLimit > 0 && currentPressure > pressureLimit) {
         return 0.0f;
     }
 
-    return basePower;
+    //return basePower;
+
+    return _controllerFlowPower;
 }
 
 void DimmedPump::setFlowTarget(float targetFlow, float pressureLimit) {
     _mode = ControlMode::FLOW;
     _targetFlow = targetFlow;
     _pressureLimit = pressureLimit;
+}
+
+void DimmedPump::setFlowTuning(float Kp, float Ki, float Kd) {
+    _flowController.setTunings(Kp, Ki, Kd);
+    ESP_LOGI(LOG_TAG, "Kp: %.2f, Ki: %.2f, Kd: %.2f", Kp, Ki, Kd);
 }
 
 void DimmedPump::setPressureTarget(float targetPressure, float flowLimit) {

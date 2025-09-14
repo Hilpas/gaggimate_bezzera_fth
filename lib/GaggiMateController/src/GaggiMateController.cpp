@@ -40,7 +40,7 @@ void GaggiMateController::setup() {
         pressureSensor = new PressureSensor(_config.pressureSda, _config.pressureScl, [this](float pressure) { /* noop */ });
     }
     if (_config.capabilites.dimming) {
-        pump = new DimmedPump(_config.pumpPin, _config.pumpSensePin, pressureSensor);
+        pump = new DimmedPump(_config.pumpPin, _config.pumpSensePin, pressureSensor, flowSensor);
     } else {
         pump = new SimplePump(_config.pumpPin, _config.pumpOn, _config.capabilites.ssrPump ? 1000.0f : 5000.0f);
     }
@@ -89,6 +89,10 @@ void GaggiMateController::setup() {
         });
     _ble.registerAltControlCallback([this](bool state) { this->alt->set(state); });   
     _ble.registerPidControlCallback([this](float Kp, float Ki, float Kd) { this->heater->setTunings(Kp, Ki, Kd); });
+    _ble.registerFlowPidControlCallback([this](float Kp, float Ki, float Kd) { 
+            auto dimmedPump = static_cast<DimmedPump *>(pump);
+            dimmedPump->setFlowTuning(Kp, Ki, Kd); 
+        });
     _ble.registerPingCallback([this]() {
         lastPingTime = millis();
         ESP_LOGV(LOG_TAG, "Ping received, system is alive");

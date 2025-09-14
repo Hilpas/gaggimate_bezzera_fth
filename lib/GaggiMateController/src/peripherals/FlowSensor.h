@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <functional>
 
-constexpr int FLOW_LOOP_INTERVAL_MS = 1000;
+constexpr int FLOW_LOOP_INTERVAL_MS = 50; // 100ms loop interval for flow sensor calculations
 constexpr float ML_PER_PULSE = 0.4797f; // according to datasheet 0.5195mL/Pulse, but adjusted due to calibration
 using flow_callback_t = std::function<void(float)>;
 
@@ -26,10 +26,18 @@ private:
 
     uint8_t _pin;
     volatile uint64_t _lastPulseTimeUs = 0;
+    uint64_t _lastLogTimeUs = 0;
     volatile uint64_t _pulseDeltaUs = 0;
     volatile float _flowRate = 0.0f;
+    volatile float _filteredFlowRate = 0.0f;
     flow_callback_t _callback;
     xTaskHandle taskHandle = nullptr;
+
+    // For filtering the flow rate
+    const float ALPHA = 0.14f;
+
+    QueueHandle_t _pulseQueue; // <-- ADD THIS: Handle for our queue
+    const int PULSE_QUEUE_LENGTH = 30; // Max pulses to queue before calculations
 
     const char *LOG_TAG = "FlowSensor";
 };

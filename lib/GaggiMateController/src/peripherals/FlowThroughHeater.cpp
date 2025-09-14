@@ -63,7 +63,7 @@ void FlowThroughHeater::loopPid() {
     temperature = sensor_temperature->read();
     flow = sensor_flow->read();
     if (flowThroughPID->update()) {
-        plot(output, 1.0f, 1);
+        plot(output, 1.0f, 10);
     }
 }
 

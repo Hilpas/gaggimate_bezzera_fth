@@ -3,6 +3,8 @@
 #include "PSM.h"
 #include "PressureController.h"
 #include "PressureSensor.h"
+#include "FlowSensor.h"
+#include "FlowController.h"
 #include "Pump.h"
 #include <Arduino.h>
 
@@ -10,7 +12,7 @@ class DimmedPump : public Pump {
   public:
     enum class ControlMode { POWER, PRESSURE, FLOW };
 
-    DimmedPump(uint8_t ssr_pin, uint8_t sense_pin, PressureSensor *pressureSensor);
+    DimmedPump(uint8_t ssr_pin, uint8_t sense_pin, PressureSensor *pressureSensor, FlowSensor *flowSensor);
     ~DimmedPump() = default;
 
     void setup() override;
@@ -22,6 +24,7 @@ class DimmedPump : public Pump {
     void tare();
 
     void setFlowTarget(float targetFlow, float pressureLimit);
+    void setFlowTuning(float Kp, float Ki, float Kd);
     void setPressureTarget(float targetPressure, float flowLimit);
     void stop();
     void fullPower();
@@ -32,17 +35,21 @@ class DimmedPump : public Pump {
     uint8_t _sense_pin;
     PSM _psm;
     PressureSensor *_pressureSensor;
+    FlowSensor *_flowSensor;
     PressureController _pressureController;
+    FlowController _flowController;
     xTaskHandle taskHandle;
 
     ControlMode _mode = ControlMode::POWER;
     float _power = 0.0f;
     float _controllerPower = 0.0f;
+    float _controllerFlowPower = 0.0f;
     float _targetFlow = 0.0f;
     float _targetPressure = 0.0f;
     float _pressureLimit = 0.0f;
     float _flowLimit = 0.0f;
     float _currentPressure = 0.0f;
+    float _currentFlow = 0.0f;
     float _lastPressure = 0.0f;
     int _valveStatus = 0;
     int _cps = MAX_FREQ;
