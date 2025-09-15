@@ -18,7 +18,7 @@
 #define DEFAULT_PRESSURE_SCALING 12.0f
 #define DEFAULT_PID "7.0,0.0,0.0"
 #define DEFAULT_FLOW_PID "15.0,20.0,5.0"
-#define STANDSTILL_PID "0.2,0.0,0.0"
+#define DEFAULT_STANDBY_PID "0.2,0.0,0.0"
 #define DEFAULT_MDNS_NAME "gaggimate"
 #define DEFAULT_OTA_CHANNEL "latest"
 #define DEFAULT_TIMEZONE "Europe/Rome"

@@ -18,6 +18,7 @@ Settings::Settings() {
     temperatureOffset = preferences.getInt("to", DEFAULT_TEMPERATURE_OFFSET);
     pressureScaling = preferences.getFloat("ps", DEFAULT_PRESSURE_SCALING);
     pid = preferences.getString("pid", DEFAULT_PID);
+    standbyPid = preferences.getString("spid", DEFAULT_STANDBY_PID);
     flowPid = preferences.getString("fpid", DEFAULT_FLOW_PID);
     wifiSsid = preferences.getString("ws", "");
     wifiPassword = preferences.getString("wp", "");
@@ -161,6 +162,11 @@ void Settings::setPressurizeTime(int pressurize_time) {
 
 void Settings::setPid(const String &pid) {
     this->pid = pid;
+    save();
+}
+
+void Settings::setStandbyPid(const String &standbyPid) {
+    this->standbyPid = standbyPid;
     save();
 }
 
@@ -344,6 +350,7 @@ void Settings::doSave() {
     preferences.putInt("to", temperatureOffset);
     preferences.putFloat("ps", pressureScaling);
     preferences.putString("pid", pid);
+    preferences.putString("spid", standbyPid);
     preferences.putString("fpid", flowPid);
     preferences.putString("ws", wifiSsid);
     preferences.putString("wp", wifiPassword);

@@ -89,6 +89,7 @@ void GaggiMateController::setup() {
         });
     _ble.registerAltControlCallback([this](bool state) { this->alt->set(state); });   
     _ble.registerPidControlCallback([this](float Kp, float Ki, float Kd) { this->heater->setTunings(Kp, Ki, Kd); });
+    _ble.registerStandbyPidControlCallback([this](float Kp, float Ki, float Kd) { this->heater->setTunings(Kp, Ki, Kd); });
     _ble.registerFlowPidControlCallback([this](float Kp, float Ki, float Kd) { 
             auto dimmedPump = static_cast<DimmedPump *>(pump);
             dimmedPump->setFlowTuning(Kp, Ki, Kd); 

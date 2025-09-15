@@ -31,6 +31,10 @@ void NimBLEServerController::initServer(const String infoString) {
     pidControlChar = pService->createCharacteristic(PID_CONTROL_CHAR_UUID, NIMBLE_PROPERTY::WRITE);
     pidControlChar->setCallbacks(this); // Use this class as the callback handler
 
+    // Standby PID control Characteristic (Client writes standby PID settings, Server reads)
+    standbyPidControlChar = pService->createCharacteristic(STANDBY_PID_CONTROL_CHAR_UUID, NIMBLE_PROPERTY::WRITE);
+    standbyPidControlChar->setCallbacks(this); // Use this class as the callback handlerq
+
     // Flow PID Characteristic (Client writes flow PID settings, Server reads)
     flowPidChar = pService->createCharacteristic(FLOW_PID_CHAR_UUID, NIMBLE_PROPERTY::WRITE);
     flowPidChar->setCallbacks(this); // Use this class as the callback handler
@@ -153,7 +157,9 @@ void NimBLEServerController::setInfo(const String infoString) {
 }
 
 void NimBLEServerController::registerPidControlCallback(const pid_control_callback_t &callback) { pidControlCallback = callback; }
+void NimBLEServerController::registerStandbyPidControlCallback(const standby_pid_callback_t &callback) { standbyPidCallback = callback; }
 void NimBLEServerController::registerFlowPidControlCallback(const flow_pid_callback_t &callback) { flowPidCallback = callback; }
+
 
 // BLEServerCallbacks override
 void NimBLEServerController::onConnect(NimBLEServer *pServer) {
@@ -220,6 +226,15 @@ void NimBLEServerController::onWrite(NimBLECharacteristic *pCharacteristic) {
         ESP_LOGV(LOG_TAG, "Received PID settings: %.2f, %.2f, %.2f", Kp, Ki, Kd);
         if (pidControlCallback != nullptr) {
             pidControlCallback(Kp, Ki, Kd);
+        }
+    } else if (pCharacteristic->getUUID().equals(NimBLEUUID(STANDBY_PID_CONTROL_CHAR_UUID))) {
+        auto pid = String(pCharacteristic->getValue().c_str());
+        float Kp = get_token(pid, 0, ',').toFloat();
+        float Ki = get_token(pid, 1, ',').toFloat();
+        float Kd = get_token(pid, 2, ',').toFloat();
+        ESP_LOGV(LOG_TAG, "Received Standby PID settings: %.2f, %.2f, %.2f", Kp, Ki, Kd);
+        if (standbyPidCallback != nullptr) {
+            standbyPidCallback(Kp, Ki, Kd);
         }
     } else if (pCharacteristic->getUUID().equals(NimBLEUUID(FLOW_PID_CHAR_UUID))) {
         auto pid = String(pCharacteristic->getValue().c_str());

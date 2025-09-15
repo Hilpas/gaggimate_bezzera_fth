@@ -19,6 +19,7 @@ class NimBLEServerController : public NimBLEServerCallbacks, public NimBLECharac
     void registerAdvancedOutputControlCallback(const advanced_output_callback_t &callback);
     void registerAltControlCallback(const pin_control_callback_t &callback);
     void registerPidControlCallback(const pid_control_callback_t &callback);
+    void registerStandbyPidControlCallback(const standby_pid_callback_t &callback);
     void registerFlowPidControlCallback(const flow_pid_callback_t &callback);
     void registerPingCallback(const ping_callback_t &callback);
     void registerAutotuneCallback(const autotune_callback_t &callback);
@@ -34,6 +35,7 @@ class NimBLEServerController : public NimBLEServerCallbacks, public NimBLECharac
     NimBLECharacteristic *altControlChar = nullptr;
     NimBLECharacteristic *pingChar = nullptr;
     NimBLECharacteristic *pidControlChar = nullptr;
+    NimBLECharacteristic *standbyPidControlChar = nullptr;
     NimBLECharacteristic *flowPidChar = nullptr;
     NimBLECharacteristic *errorChar = nullptr;
     NimBLECharacteristic *autotuneChar = nullptr;
@@ -49,6 +51,7 @@ class NimBLEServerController : public NimBLEServerCallbacks, public NimBLECharac
     advanced_output_callback_t advancedControlCallback = nullptr;
     pin_control_callback_t altControlCallback = nullptr;
     pid_control_callback_t pidControlCallback = nullptr;
+    standby_pid_callback_t standbyPidCallback = nullptr;
     flow_pid_callback_t flowPidCallback = nullptr;
     ping_callback_t pingCallback = nullptr;
     autotune_callback_t autotuneCallback = nullptr;

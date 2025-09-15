@@ -17,6 +17,7 @@ class NimBLEClientController : public NimBLEAdvertisedDeviceCallbacks, NimBLECli
     void sendPing();
     void sendAutotune(int testTime, int samples);
     void sendPidSettings(const String &pid);
+    void sendStandbyPidSettings(const String &standbyPid);
     void sendFlowPidSettings(const String &flowPid);
     void setPressureScale(float scale);
     bool isReadyForConnection() const;
@@ -42,6 +43,7 @@ class NimBLEClientController : public NimBLEAdvertisedDeviceCallbacks, NimBLECli
     NimBLERemoteCharacteristic *tempReadChar = nullptr;
     NimBLERemoteCharacteristic *pingChar = nullptr;
     NimBLERemoteCharacteristic *pidControlChar = nullptr;
+    NimBLERemoteCharacteristic *standbyPidControlChar = nullptr;
     NimBLERemoteCharacteristic *flowPidChar = nullptr;
     NimBLERemoteCharacteristic *errorChar = nullptr;
     NimBLERemoteCharacteristic *autotuneChar = nullptr;

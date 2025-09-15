@@ -91,6 +91,7 @@ bool NimBLEClientController::connectToServer() {
     autotuneChar = pRemoteService->getCharacteristic(NimBLEUUID(AUTOTUNE_CHAR_UUID));
     pingChar = pRemoteService->getCharacteristic(NimBLEUUID(PING_CHAR_UUID));
     pidControlChar = pRemoteService->getCharacteristic(NimBLEUUID(PID_CONTROL_CHAR_UUID));
+    standbyPidControlChar = pRemoteService->getCharacteristic(NimBLEUUID(STANDBY_PID_CONTROL_CHAR_UUID));
     flowPidChar = pRemoteService->getCharacteristic(NimBLEUUID(FLOW_PID_CHAR_UUID));
     infoChar = pRemoteService->getCharacteristic(NimBLEUUID(INFO_UUID));
     pressureScaleChar = pRemoteService->getCharacteristic(NimBLEUUID(PRESSURE_SCALE_UUID));
@@ -164,6 +165,12 @@ void NimBLEClientController::sendOutputControl(bool valve, float pumpSetpoint, f
 void NimBLEClientController::sendPidSettings(const String &pid) {
     if (pidControlChar != nullptr && client->isConnected()) {
         pidControlChar->writeValue(pid);
+    }
+}
+
+void NimBLEClientController::sendStandbyPidSettings(const String &standbyPid) {
+    if (standbyPidControlChar != nullptr && client->isConnected()) {
+        standbyPidControlChar->writeValue(standbyPid);
     }
 }
 

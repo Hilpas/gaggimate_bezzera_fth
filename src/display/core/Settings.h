@@ -38,6 +38,7 @@ class Settings {
     double getGrindDelay() const { return grindDelay; }
     bool isDelayAdjust() const { return delayAdjust; }
     String getPid() const { return pid; }
+    String getStandbyPid() const { return standbyPid; }
     String getFlowPid() const { return flowPid; }
     String getWifiSsid() const { return wifiSsid; }
     String getWifiPassword() const { return wifiPassword; }
@@ -86,6 +87,7 @@ class Settings {
     void setGrindDelay(double grindDelay);
     void setDelayAdjust(bool delay_adjust);
     void setPid(const String &pid);
+    void setStandbyPid(const String &standbyPid);
     void setFlowPid(const String &flowPid);
     void setWifiSsid(const String &wifiSsid);
     void setWifiPassword(const String &wifiPassword);
@@ -138,6 +140,7 @@ class Settings {
     int standbyTimeout = DEFAULT_STANDBY_TIMEOUT_MS;
     String pid = DEFAULT_PID;
     String flowPid = DEFAULT_FLOW_PID;
+    String standbyPid = DEFAULT_STANDBY_PID;
     String wifiSsid = "";
     String wifiPassword = "";
     String mdnsName = DEFAULT_MDNS_NAME;

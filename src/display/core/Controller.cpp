@@ -195,6 +195,7 @@ void Controller::loop() {
             ESP_LOGI("Controller", "setting pressure scale to %.2f\n", settings.getPressureScaling());
             setPressureScale();
             clientController.sendPidSettings(settings.getPid());
+            clientController.sendStandbyPidSettings(settings.getStandbyPid());
             clientController.sendFlowPidSettings(settings.getFlowPid());
 
             pluginManager->trigger("controller:ready");
@@ -310,8 +311,9 @@ int Controller::getTargetTemp() {
 
 void Controller::setTargetTemp(int temperature) {
     pluginManager->trigger("boiler:targetTemperature:change", "value", temperature);
-    // Also update flow pid
+    // Also update flow and standby pid
     clientController.sendFlowPidSettings(settings.getFlowPid());
+    clientController.sendStandbyPidSettings(settings.getStandbyPid());
     switch (mode) {
     case MODE_BREW:
     case MODE_GRIND:
@@ -479,7 +481,7 @@ void Controller::activate() {
         break;
     case MODE_WATER:
         // Decrease PID for water mode
-        clientController.sendPidSettings(STANDSTILL_PID);
+        clientController.sendStandbyPidSettings(settings.getStandbyPid());
         startProcess(new PumpProcess());
         break;
     default:;
@@ -491,7 +493,7 @@ void Controller::activate() {
 
 void Controller::deactivate() {
     // Decrease PID when inactive
-    clientController.sendPidSettings(STANDSTILL_PID);
+    clientController.sendStandbyPidSettings(settings.getStandbyPid());
 
     if (currentProcess == nullptr) {
         return;

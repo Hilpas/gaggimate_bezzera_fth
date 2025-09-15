@@ -2,8 +2,7 @@
 #include <Arduino.h>
 #include <algorithm>
 
-constexpr float TUNER_INPUT_SPAN = 160.0f;
-constexpr float TUNER_OUTPUT_SPAN = 100.0f; // this is the relay duty cycle 500ms is 100% duty cycle
+constexpr float TUNER_OUTPUT_SPAN = 500.0f; // this is the relay duty cycle 500ms is 100% duty cycle
 
 FlowThroughHeater::FlowThroughHeater(TemperatureSensor *sensor_temperature, FlowSensor *sensor_flow, uint8_t heaterPin, uint8_t overheatPin, const heater_error_callback_t &error_callback)
     : sensor_temperature(sensor_temperature), sensor_flow(sensor_flow), heaterPin(heaterPin), overheatPin(overheatPin), taskHandle(nullptr), error_callback(error_callback) {
@@ -20,7 +19,7 @@ void FlowThroughHeater::setup() {
 
 void FlowThroughHeater::setupPid() {
 
-    //flowThroughPID->setSamplingFrequency(TUNER_OUTPUT_SPAN / 1000.0f);
+    flowThroughPID->setSamplingFrequency(10.0f); //Hz
     flowThroughPID->setCtrlOutputLimits(0.0f, TUNER_OUTPUT_SPAN);
     flowThroughPID->activateFeedForward(true);
     flowThroughPID->setKp(Kp);
@@ -63,7 +62,7 @@ void FlowThroughHeater::loopPid() {
     temperature = sensor_temperature->read();
     flow = sensor_flow->read();
     if (flowThroughPID->update()) {
-        plot(output, 1.0f, 10);
+        plot(output, 1.0f, 1);
     }
 }
 
@@ -105,6 +104,6 @@ void FlowThroughHeater::loopTask(void *arg) {
     auto *heater = static_cast<FlowThroughHeater *>(arg);
     while (true) {
         heater->loop();
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(100 / portTICK_PERIOD_MS); // 100ms delay
     }
 }

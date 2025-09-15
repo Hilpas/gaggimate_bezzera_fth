@@ -398,6 +398,20 @@ export function Settings() {
             />
           </div>
           <div>
+            <label htmlFor="standbyPid" className="block font-medium text-gray-700 dark:text-gray-400">
+              Standby PID Values (Kp, Ki, Kd)
+            </label>
+            <input
+              id="standbyPid"
+              name="standbyPid"
+              type="text"
+              className="input-field"
+              placeholder="0.2, 0.0, 0.0"
+              value={formData.standbyPid}
+              onChange={onChange('standbyPid')}
+            />
+          </div>
+          <div>
             <label htmlFor="flowPid" className="block font-medium text-gray-700 dark:text-gray-400">
               Flow PID (Kp, Ki, Kd)
             </label>

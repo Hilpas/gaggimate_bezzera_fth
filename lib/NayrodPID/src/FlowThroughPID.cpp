@@ -20,7 +20,8 @@ bool FlowThroughPID::update() {
     }
     uint32_t now = millis();
     uint32_t timeChange = (now - lastTime);
-    if (timeChange < ctrl_freq_sampling * 1000) {
+    // CORRECTED LOGIC: This correctly uses the variable as a frequency in Hz
+    if (timeChange < (1000 / ctrl_freq_sampling)) {
         return false;
     }
     lastTime = now;
@@ -32,7 +33,8 @@ bool FlowThroughPID::update() {
         isInitialized = true;
     }
 
-    float deltaTime = 1.0f / ctrl_freq_sampling; // Time step in seconds
+    // Use the ACTUAL elapsed time for calculations, not a theoretical one.
+    float deltaTimeInSeconds = timeChange / 1000.0f;
 
     // Feeback terms
     float error = *setpointTarget - *sensorTemperatureOutput;
@@ -56,10 +58,10 @@ bool FlowThroughPID::update() {
 
     float Pout = gainKp * error;
 
-    feedback_integralState += error * deltaTime;
+    feedback_integralState += error * deltaTimeInSeconds;
     float Iout = gainKi * feedback_integralState;
 
-    float derivative = (error - prevError) / deltaTime;
+    float derivative = (error - prevError) / deltaTimeInSeconds;
     float Dout = gainKd * derivative;
 
     // Calculate the output before antiwindup clamping
@@ -70,19 +72,21 @@ bool FlowThroughPID::update() {
     //Serial.printf("FeedForward: %.2f, PID: %.2f\n", FFoutput, sumPIDsat);
 
     // Antiwindup clamping
-    bool isSaturated = (sumPID < ctrlOutputLimits[0] || sumPID > ctrlOutputLimits[1]); // Check if the output is saturated
-    bool isSameSign =
-        ((error > 0 && sumPID > 0) || (error < 0 && sumPID < 0)); // Check if the error and output have the same sign
-    // Serial.printf("OutputPID: %.2f, Integ out: %.2f\n", sumPIDsat, Iout);
-    if (isSaturated && isSameSign) {
-        // Serial.printf("Antiwindup clamping: %.2f\n", feedback_integralState);
-        feedback_integralState -=
-            error * deltaTime; // Forbide the integration to happen when the output is saturated and the error is in the same
-                               // direction as the output (i.e. the system is not able to follow the setpoint)
-        Iout = gainKi * feedback_integralState; // Recompute the integral term with the new state
-        sumPID = Pout + Iout + Dout + FFoutput;    // Recompute the output with the new integral state
-        sumPIDsat = constrain(sumPID, ctrlOutputLimits[0], ctrlOutputLimits[1]);
-    }
+    //bool isSaturated = (sumPID < ctrlOutputLimits[0] || sumPID > ctrlOutputLimits[1]); // Check if the output is saturated
+    //bool isSameSign =
+    //    ((error > 0 && sumPID > 0) || (error < 0 && sumPID < 0)); // Check if the error and output have the same sign
+    //// Serial.printf("OutputPID: %.2f, Integ out: %.2f\n", sumPIDsat, Iout);
+    //if (isSaturated && isSameSign) {
+    //    // Serial.printf("Antiwindup clamping: %.2f\n", feedback_integralState);
+    //    feedback_integralState -=
+    //        error * deltaTime; // Forbide the integration to happen when the output is saturated and the error is in the same
+    //                           // direction as the output (i.e. the system is not able to follow the setpoint)
+    // Iout = gainKi * feedback_integralState; // Recompute the integral term with the new state
+    //    sumPID = Pout + Iout + Dout + FFoutput;    // Recompute the output with the new integral state
+    //   sumPIDsat = constrain(sumPID, ctrlOutputLimits[0], ctrlOutputLimits[1]);
+
+    //Serial.printf("PID terms: P=%.2f, I=%.2f, D=%.2f, FF=%.2f | Error=%.2f | Total=%.2f\n", Pout, Iout, Dout, FFoutput, error, sumPIDsat);
+    //}
 
     prevError = error;
     prevOutput = sumPIDsat;

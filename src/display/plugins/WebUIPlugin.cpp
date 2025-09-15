@@ -268,6 +268,8 @@ void WebUIPlugin::handleSettings(AsyncWebServerRequest *request) const {
                 settings->setPressureScaling(request->arg("pressureScaling").toFloat());
             if (request->hasArg("pid"))
                 settings->setPid(request->arg("pid"));
+            if (request->hasArg("standbyPid"))
+                settings->setStandbyPid(request->arg("standbyPid"));
             if (request->hasArg("flowPid"))
                 settings->setFlowPid(request->arg("flowPid"));
             if (request->hasArg("wifiSsid"))
@@ -333,6 +335,7 @@ void WebUIPlugin::handleSettings(AsyncWebServerRequest *request) const {
     doc["haIP"] = settings.getHomeAssistantIP();
     doc["haPort"] = settings.getHomeAssistantPort();
     doc["pid"] = settings.getPid();
+    doc["standbyPid"] = settings.getStandbyPid();
     doc["flowPid"] = settings.getFlowPid();
     doc["wifiSsid"] = settings.getWifiSsid();
     doc["wifiPassword"] = apMode ? "---unchanged---" : settings.getWifiPassword();
