@@ -52,7 +52,7 @@ class FlowThroughPID {
     float gainKp = 0.0f;                                 // Proportional gain
     float gainKi = 0.0f;                                  // Integral gain (multiplies by Kp if Kp,Ki,Kd are strictly parallèle (no factoring by Kp))
     float gainKd = 0.0f;                                  // Derivative gain (by default no derivative term)
-    float gainFF = 0.0f;                                 // Feedforward gain
+    float gainFF = 1.4f;                                 // Feedforward gain calibrated by hand
     float feedback_integralState = 0.0f;                  // Integral state
     float prevError = 0.0f;                             // Previous error for derivative calculation
     float prevOutput = 0.0f;                            // Previous output for derivative calculation

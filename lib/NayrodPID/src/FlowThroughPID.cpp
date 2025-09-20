@@ -48,6 +48,7 @@ bool FlowThroughPID::update() {
         // Scale to output range (e.g., if ctrlOutputLimits are in percent of max power)
         // Example: if FFoutput is in Watt and ctrlOutputLimits are in percent:
         FFoutput = (FFoutput / HEATER_MAX_POWER) * ctrlOutputLimits[1]; // Scale to the output range
+        FFoutput *= gainFF; // add gain factor
 
         // Limit/clamp to allowed range
         FFoutput = fmaxf(ctrlOutputLimits[0], fminf(FFoutput, ctrlOutputLimits[1]));

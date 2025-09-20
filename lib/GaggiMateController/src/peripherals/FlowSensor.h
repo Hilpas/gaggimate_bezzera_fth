@@ -5,7 +5,7 @@
 #include <functional>
 
 constexpr int FLOW_LOOP_INTERVAL_MS = 20; // 20ms fastest pulses sensor can make are 56ms
-constexpr float ML_PER_PULSE = 0.4797f; // according to datasheet 0.5195mL/Pulse, but adjusted due to calibration
+constexpr float ML_PER_PULSE = 0.43900; // according to datasheet 0.5195mL/Pulse, but adjusted due to calibration
 using flow_callback_t = std::function<void(float)>;
 
 class FlowSensor {
@@ -37,7 +37,7 @@ private:
     xTaskHandle taskHandle = nullptr;
 
     // For filtering the flow rate
-    const float STABLE_ALPHA = 0.05f;
+    const float STABLE_ALPHA = 0.06f;
     const float FAST_ALPHA = 0.60f;    
 
     QueueHandle_t _pulseQueue; // <-- ADD THIS: Handle for our queue
