@@ -6,7 +6,7 @@
 #include <freertos/task.h>
 #include <functional>
 
-constexpr int NTC_UPDATE_INTERVAL = 50;
+constexpr int NTC_UPDATE_INTERVAL = 20; // 20ms same as flow
 constexpr int NTC_MAX_ERRORS = 20;
 constexpr double NTC_MAX_SAFE_TEMP = 170.0;
 
@@ -37,6 +37,8 @@ class NTCTemperatureSensor : public TemperatureSensor{
 
         temperature_callback_t callback;
         temperature_error_callback_t error_callback;
+
+        const float ALPHA = 0.15f;
         
         const char *LOG_TAG = "NTCTemperatureSensor";
         static void monitorTask(void *arg);

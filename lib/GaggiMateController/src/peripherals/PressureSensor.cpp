@@ -1,5 +1,6 @@
 #include "PressureSensor.h"
 #include "Wire.h"
+#include "../GaggiMateController.h"
 
 PressureSensor::PressureSensor(uint8_t sda_pin, uint8_t scl_pin, const pressure_callback_t &callback, float pressure_scale,
                                float voltage_floor, float voltage_ceil)
@@ -21,7 +22,7 @@ void PressureSensor::setup() {
     ads->setDataRate(4);
     ads->setMode(0);
     ads->readADC(0);
-    xTaskCreate(loopTask, "Heater::loop", configMINIMAL_STACK_SIZE * 4, this, 1, &taskHandle);
+    xTaskCreate(loopTask, "Heater::loop", configMINIMAL_STACK_SIZE * 4, this, TASK_PRIO_SENSORS, &taskHandle);
 }
 
 void PressureSensor::loop() {

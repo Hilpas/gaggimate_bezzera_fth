@@ -1,6 +1,7 @@
 #include "NTCTemperatureSensor.h"
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
+#include "../GaggiMateController.h" 
 
 NTCTemperatureSensor::NTCTemperatureSensor(const int pin, const float seriesResistor, const float nominalResistance,
                                            const float nominalTempC, const float bCoefficient,
@@ -17,7 +18,7 @@ bool NTCTemperatureSensor::isErrorState() { return errors >= NTC_MAX_ERRORS; }
 
 void NTCTemperatureSensor::setup() {
     pinMode(pin, INPUT);
-    xTaskCreate(monitorTask, "NTCTemperatureSensor::monitor", configMINIMAL_STACK_SIZE * 4, this, 1, &taskHandle);
+    xTaskCreate(monitorTask, "NTCTemperatureSensor::monitor", configMINIMAL_STACK_SIZE * 4, this, TASK_PRIO_SENSORS, &taskHandle);
 }
 
 void NTCTemperatureSensor::loop() {
@@ -43,9 +44,7 @@ void NTCTemperatureSensor::loop() {
 
     errors = 0;                               
     if (temp > 0) {
-        //disable filtration for now
-        //temperature = 0.2 * temp + 0.8 * temperature;
-        temperature = temp; 
+        temperature = (ALPHA * temp) + (1.0f - ALPHA) * temperature;
     } else {
         errors++;
     }

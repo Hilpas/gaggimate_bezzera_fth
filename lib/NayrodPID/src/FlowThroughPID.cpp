@@ -68,26 +68,6 @@ bool FlowThroughPID::update() {
     float sumPID = Pout + Iout + Dout + FFoutput;
     float sumPIDsat = constrain(sumPID, ctrlOutputLimits[0], ctrlOutputLimits[1]);
 
-    // Debugging feed forward
-    //Serial.printf("FeedForward: %.2f, PID: %.2f\n", FFoutput, sumPIDsat);
-
-    // Antiwindup clamping
-    //bool isSaturated = (sumPID < ctrlOutputLimits[0] || sumPID > ctrlOutputLimits[1]); // Check if the output is saturated
-    //bool isSameSign =
-    //    ((error > 0 && sumPID > 0) || (error < 0 && sumPID < 0)); // Check if the error and output have the same sign
-    //// Serial.printf("OutputPID: %.2f, Integ out: %.2f\n", sumPIDsat, Iout);
-    //if (isSaturated && isSameSign) {
-    //    // Serial.printf("Antiwindup clamping: %.2f\n", feedback_integralState);
-    //    feedback_integralState -=
-    //        error * deltaTime; // Forbide the integration to happen when the output is saturated and the error is in the same
-    //                           // direction as the output (i.e. the system is not able to follow the setpoint)
-    // Iout = gainKi * feedback_integralState; // Recompute the integral term with the new state
-    //    sumPID = Pout + Iout + Dout + FFoutput;    // Recompute the output with the new integral state
-    //   sumPIDsat = constrain(sumPID, ctrlOutputLimits[0], ctrlOutputLimits[1]);
-
-    //Serial.printf("PID terms: P=%.2f, I=%.2f, D=%.2f, FF=%.2f | Error=%.2f | Total=%.2f\n", Pout, Iout, Dout, FFoutput, error, sumPIDsat);
-    //}
-
     prevError = error;
     prevOutput = sumPIDsat;
 
@@ -109,10 +89,9 @@ void FlowThroughPID::reset() {
 
 // GETTER-SETTER FUNCTIONS
 // Feedback controller
-void FlowThroughPID::setControllerPIDGains(float Kp, float Ki, float Kd, float FF) {
+void FlowThroughPID::setControllerPIDGains(float Kp, float Ki, float Kd) {
     this->gainKp = Kp;
     this->gainKi = Ki;
-    this->gainFF = FF;
     this->gainKd = Kd;
 }
 
@@ -124,7 +103,7 @@ void FlowThroughPID::setCtrlOutputLimits(float minOutput, float maxOutput) {
 
 void FlowThroughPID::setMode(Control modeCMD) {
     if (modeCMD == Control::automatic && this->mode == Control::manual) {
-        isInitialized = false; // Reset the controller when switching to automatic mode
+        reset();
     }
     this->mode = modeCMD;
 }

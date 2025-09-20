@@ -1,5 +1,4 @@
 #include "DimmedPump.h"
-
 #include <GaggiMateController.h>
 
 DimmedPump::DimmedPump(uint8_t ssr_pin, uint8_t sense_pin, PressureSensor *pressure_sensor, FlowSensor *flow_sensor)
@@ -14,21 +13,13 @@ void DimmedPump::setup() {
     if (_cps > 70) {
         _cps = _cps / 2;
     }
-    xTaskCreate(loopTask, "DimmedPump::loop", configMINIMAL_STACK_SIZE * 4, this, 1, &taskHandle);
+    xTaskCreate(loopTask, "DimmedPump::loop", configMINIMAL_STACK_SIZE * 4, this, TASK_PRIO_REGULATORS, &taskHandle);
 }
 
 void DimmedPump::loop() {
     _currentPressure = _pressureSensor->getRawPressure();
     _currentFlow = _flowSensor->read_g_s();
     updatePower();
-
-    // Log the current flow for debugging purposes
-    //static uint32_t lastLogTime = 0;
-    //uint32_t now = millis();
-    //if (now - lastLogTime >= 1000) {
-    //    ESP_LOGI(LOG_TAG, "Flow rate: %.2f ml/min", getFlow() * 60.0f);
-    //    lastLogTime = now;
-    //}
 }
 
 void DimmedPump::setPower(float setpoint) {
@@ -54,7 +45,7 @@ void DimmedPump::loopTask(void *arg) {
     TickType_t lastWake = xTaskGetTickCount();
     while (true) {
         pump->loop();
-        xTaskDelayUntil(&lastWake, pdMS_TO_TICKS(30));
+        xTaskDelayUntil(&lastWake, pdMS_TO_TICKS(PUMP_LOOP_INTERVAL_MS));
     }
 }
 
@@ -62,95 +53,30 @@ void DimmedPump::updatePower() {
     _pressureController.update();
     _flowController.update();
 
-    // Ramp start logic
-    //if (_power > 0 && !rampStart) {
-    //    rampStartTime = millis();
-    //    rampStart = true;
-    //} else if(_power == 0 && rampStart) {
-    //    rampStart = false;
-    //}
 
-    //switch (_mode) {
-    //case ControlMode::PRESSURE:
-    //    _power = calculatePowerForPressure(_targetPressure, _currentPressure, _flowLimit);
-    //    break;
-//
-    //case ControlMode::FLOW:
-    //    _power = calculatePowerForFlow(_targetFlow, _currentPressure, _pressureLimit);
-    //    break;
-//
-    //case ControlMode::POWER:
-        // Ramp start test
 
-        // Erst Rampe, dann ab Druck 3 bar auf 50%
-        //if(rampStart) {
-        //    uint32_t now = millis();
-        //    float elapsed = now - rampStartTime;
-
-        //    if (elapsed < rampDurationMs) {
-        //        // Ramp from 5 to targetPumpPower
-        //        _power = rampStartValue + ((targetPumpPower - rampStartValue) * (elapsed / rampDurationMs));
-        //    } else if (elapsed >= rampDurationMs && _currentPressure >= 3.0f) {
-        //        _power = 50;
-        //    } 
-        //}
-        
-        // //Erst 20% bis 3 bar, dann Rampe auf 50%
-        //if (_power > 0 && _currentPressure < 4.0f) 
-        //{
-        //    _power = rampStartValue;
-        //} 
-        //else if (_power > 0 && _currentPressure >= 4.0f ) 
-        //{
-        //    if (!rampStart) {
-        //        rampStartTime = millis();
-        //        rampStart = true;
-        //    }
-        //
-        //    uint32_t now = millis();
-        //    float elapsed = now - rampStartTime;
-        //
-        //    if (elapsed < rampDurationMs) {
-        //       // Ramp from 5 to targetPumpPower
-        //        _power = rampStartValue + ((targetPumpPower - rampStartValue) * (elapsed / rampDurationMs));
-        //    }   
-        //    else
-        //    {
-        //        _power = targetPumpPower;
-        //    }     
-        //} 
-        //else if(_power == 0 && rampStart) 
-        //{
-        //    rampStart = false;
-        //}
-
-        if (_power > 0 && _currentPressure < 6.0f) 
-        {
-            //4.2g/s ~250ml/min
-            setFlowTarget(4.2f, 0.0f);
-            float powerInt = calculatePowerForFlow(4.2f, _currentPressure, _pressureLimit);
-            _power = std::clamp(powerInt, 0.0001f, 100.0f);
-            printf("Mode: %d, Power: %2f, FlowSetpoint: %2f, CurrentFlow: %2f\n", static_cast<int>(_mode), powerInt, _targetFlow, _currentFlow);
-        }
-        else if (_power > 0 && _currentPressure >= 6.0f) 
-        {
-            setPressureTarget(9.0f, 0.0f);
-             float powerInt = calculatePowerForPressure(_targetPressure, _currentPressure, _flowLimit);
-            _power = std::clamp(powerInt, 0.0001f, 100.0f);
-            printf("Mode: %d, Power: %2f, PressureSetpoint: %2f, CurrentPressure: %2f\n", static_cast<int>(_mode), _power, _targetPressure, _currentPressure);
-        }
-        else if (_power == 0) 
-        {
-            _targetFlow = 0.0f;
-            _targetPressure = 0.0f;
-            _pressureLimit = 0.0f;
-            _flowLimit = 0.0f;
-        }  
-
-        //break;
-    //}
-
-    // printf("Mode: %d, Power: %2f, Pressure: %2f\n", static_cast<int>(_mode), _power, _currentPressure);
+    if (_power > 0 && _currentPressure < 6.0f) 
+    {
+        //4.2g/s ~250ml/min
+        setFlowTarget(3.9f, 0.0f);
+        float powerInt = calculatePowerForFlow(3.9f, _currentPressure, _pressureLimit);
+        _power = std::clamp(powerInt, 0.0001f, 100.0f);
+        //printf("Mode: %d, Power: %2f, FlowSetpoint: %2f, CurrentFlow: %2f\n", static_cast<int>(_mode), powerInt, _targetFlow, _currentFlow);
+    }
+    else if (_power > 0 && _currentPressure >= 6.0f) 
+    {
+        setPressureTarget(9.0f, 0.0f);
+            float powerInt = calculatePowerForPressure(_targetPressure, _currentPressure, _flowLimit);
+        _power = std::clamp(powerInt, 0.0001f, 100.0f);
+        //printf("Mode: %d, Power: %2f, PressureSetpoint: %2f, CurrentPressure: %2f\n", static_cast<int>(_mode), _power, _targetPressure, _currentPressure);
+    }
+    else if (_power == 0) 
+    {
+        _targetFlow = 0.0f;
+        _targetPressure = 0.0f;
+        _pressureLimit = 0.0f;
+        _flowLimit = 0.0f;
+    }  
 
     _psm.set(static_cast<int>(_power));
 }

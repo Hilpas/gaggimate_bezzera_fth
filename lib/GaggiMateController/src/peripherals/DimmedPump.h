@@ -8,6 +8,8 @@
 #include "Pump.h"
 #include <Arduino.h>
 
+constexpr int PUMP_LOOP_INTERVAL_MS = 20;
+
 class DimmedPump : public Pump {
   public:
     enum class ControlMode { POWER, PRESSURE, FLOW };

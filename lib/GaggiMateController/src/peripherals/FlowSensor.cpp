@@ -1,11 +1,13 @@
 #include "FlowSensor.h"
 #include <esp_timer.h>
+#include "../GaggiMateController.h"
 
 FlowSensor::FlowSensor(uint8_t pin, const flow_callback_t &callback)
     : _pin(pin), _callback(callback) {}
 
 float FlowSensor::read() { return _filteredFlowRate; }
 float FlowSensor::read_g_s() { return _filteredFlowRate / 60.0f; }
+float FlowSensor::read_instantaneous() { return _instantaneousFlowRate; }
 
 void FlowSensor::setup() {
     // Create a queue to store pulse timestamps from the ISR
@@ -18,7 +20,7 @@ void FlowSensor::setup() {
     pinMode(_pin, INPUT_PULLUP);
     attachInterruptArg(_pin, &FlowSensor::isrHandlerStatic, this, RISING);
     ESP_LOGI(LOG_TAG, "Initializing flow sensor on pin: %d", _pin);
-    xTaskCreate(loopTask, "FlowSensor::loop", configMINIMAL_STACK_SIZE * 4, this, 1, &taskHandle);
+    xTaskCreate(loopTask, "FlowSensor::loop", configMINIMAL_STACK_SIZE * 4, this, TASK_PRIO_SENSORS, &taskHandle);
 }
 
 void FlowSensor::loop() {
@@ -37,13 +39,15 @@ void FlowSensor::loop() {
                 // --- ADDED FILTER LOGIC ---
                 // 2. Apply the exponential moving average filter
                 // This gives us a much smoother, more stable reading.
-                _filteredFlowRate = (ALPHA * _flowRate) + (1.0f - ALPHA) * _filteredFlowRate;
+                _filteredFlowRate = (STABLE_ALPHA * _flowRate) + (1.0f - STABLE_ALPHA) * _filteredFlowRate;
+                _instantaneousFlowRate = (FAST_ALPHA * _flowRate) + (1.0f - FAST_ALPHA) * _instantaneousFlowRate;
                 // --- END FILTER LOGIC ---
             }
         } else {
             // Handle the very first pulse to initialize the filter
             _flowRate = 0; // Can't calculate a rate with only one pulse
             _filteredFlowRate = 0; // So the filtered rate is also zero
+            _instantaneousFlowRate = 0; // Initialize instantaneous flow rate
         }
         _lastPulseTimeUs = pulseTimestampUs;
     }
@@ -56,6 +60,7 @@ void FlowSensor::loop() {
         }
         _flowRate = 0.0f;
         _filteredFlowRate = 0.0f; // Also zero the filtered rate on timeout
+        _instantaneousFlowRate = 0.0f; // Also zero the instantaneous rate on timeout
     }
 
     // Only print the log message if at least 1 second (1,000,000 µs) has passed

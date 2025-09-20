@@ -20,6 +20,10 @@ constexpr double PING_TIMEOUT_SECONDS = 20.0;
 constexpr int DETECT_EN_PIN = 40;
 constexpr int DETECT_VALUE_PIN = 11;
 
+#define TASK_PRIO_SENSORS       3  // Highest priority for data acquisition
+#define TASK_PRIO_REGULATORS    2  // Medium priority for control loops
+#define TASK_PRIO_BACKGROUND    1  // Low priority for non-critical tasks like BLE updates
+
 class GaggiMateController {
   public:
     GaggiMateController();

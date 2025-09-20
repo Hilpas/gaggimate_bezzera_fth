@@ -13,7 +13,7 @@ class FlowThroughPID {
   public:
     FlowThroughPID(float *controlerOutput = nullptr, float *sensorTemperatureOutput = nullptr, float *sensorFlowOutput = nullptr, float *setpointTargetPtr = nullptr);
     bool update();
-    void setControllerPIDGains(float Kp, float Ki, float Kd, float FF);
+    void setControllerPIDGains(float Kp, float Ki, float Kd);
     void resetFeedbackController();
     void setSamplingFrequency(float freq);
     void setCtrlOutputLimits(float minOutput, float maxOutput);

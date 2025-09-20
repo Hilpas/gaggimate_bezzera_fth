@@ -66,6 +66,7 @@ void GaggiMateController::setup() {
         this->pump->setPower(pumpSetpoint);
         this->valve->set(valve);
         this->heater->setSetpoint(heaterSetpoint);
+        this->heater->setRegulatorReset();
         if (!_config.capabilites.dimming) {
             return;
         }
@@ -76,6 +77,7 @@ void GaggiMateController::setup() {
         [this](bool valve, float heaterSetpoint, bool pressureTarget, float pressure, float flow) {
             this->valve->set(valve);
             this->heater->setSetpoint(heaterSetpoint);
+            this->heater->setRegulatorReset();
             if (!_config.capabilites.dimming) {
                 return;
             }

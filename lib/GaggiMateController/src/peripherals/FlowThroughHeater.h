@@ -10,6 +10,9 @@
 
 using heater_error_callback_t = std::function<void()>;
 
+
+constexpr int FLOW_REGULATOR_LOOP_INTERVAL_MS = 20; // 20ms fastest pulses sensor can make are 56ms
+
 class FlowThroughHeater {
   public:
     FlowThroughHeater(TemperatureSensor *sensor_temperature, FlowSensor *sensor_flow, uint8_t heaterPin, uint8_t overheatPin, const heater_error_callback_t &error_callback);
@@ -18,6 +21,7 @@ class FlowThroughHeater {
 
     void setSetpoint(float setpoint);
     void setTunings(float Kp, float Ki, float Kd);
+    void setRegulatorReset();
 
   private:
     void setupPid();
