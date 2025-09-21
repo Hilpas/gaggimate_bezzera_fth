@@ -41,8 +41,7 @@ bool SimplePID::update() {
 
     if (isFeedForwardActive)
         FFOut = setpointDerivative * gainFF;
-    // Isnt needed already logged by esp logging
-    //Serial.printf("%.2f\t %.2f\t %.2f\t %.2f\n", *setpointTarget, setpointFiltered, setpointDerivative, *sensorOutput);
+    Serial.printf("%.2f\t %.2f\t %.2f\t %.2f\n", *setpointTarget, setpointFiltered, setpointDerivative, *sensorOutput);
 
     float deltaTime = 1.0f / ctrl_freq_sampling; // Time step in seconds
 

@@ -1,9 +1,7 @@
-import { computed } from '@preact/signals';
 import { machine } from '../services/ApiService.js';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Chart } from 'chart.js';
-
-const history = computed(() => machine.value.history);
+import { ChartComponent } from './Chart.jsx';
 
 function getChartData(data) {
   let end = new Date();
@@ -16,7 +14,7 @@ function getChartData(data) {
           label: 'Current Temperature',
           borderColor: '#F0561D',
           pointStyle: false,
-          data: data.map((i, idx) => ({x: i.timestamp.toISOString(), y: i.currentTemperature}))
+          data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.currentTemperature })),
         },
         {
           label: 'Target Temperature',
@@ -24,14 +22,14 @@ function getChartData(data) {
           borderColor: '#731F00',
           borderDash: [6, 6],
           pointStyle: false,
-          data: data.map(((i, idx) => ({x: i.timestamp.toISOString(), y: i.targetTemperature})))
+          data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.targetTemperature })),
         },
         {
           label: 'Current Pressure',
           borderColor: '#0066CC',
           pointStyle: false,
           yAxisID: 'y1',
-          data: data.map((i, idx) => ({x: i.timestamp.toISOString(), y: i.currentPressure}))
+          data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.currentPressure })),
         },
         {
           label: 'Target Pressure',
@@ -40,28 +38,39 @@ function getChartData(data) {
           borderDash: [6, 6],
           pointStyle: false,
           yAxisID: 'y1',
-          data: data.map(((i, idx) => ({x: i.timestamp.toISOString(), y: i.targetPressure})))
+          data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.targetPressure })),
         },
         {
           label: 'Current Flow',
           borderColor: '#63993D',
           pointStyle: false,
           yAxisID: 'y1',
-          data: data.map((i, idx) => ({x: i.timestamp.toISOString(), y: i.currentFlow}))
+          data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.currentFlow })),
         },
-      ]
+      ],
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: {
           position: 'top',
           display: true,
+          labels: {
+            boxWidth: 12,
+            padding: 8,
+            font: {
+              size: window.innerWidth < 640 ? 10 : 12,
+            },
+          },
         },
         title: {
           display: true,
-          text: 'Temperature History'
-        }
+          text: 'Temperature History',
+          font: {
+            size: window.innerWidth < 640 ? 14 : 16,
+          },
+        },
       },
       animation: false,
       scales: {
@@ -70,8 +79,13 @@ function getChartData(data) {
           min: 0,
           max: 160,
           ticks: {
-            callback: value => { return `${value} °C` }
-          }
+            font: {
+              size: window.innerWidth < 640 ? 10 : 12,
+            },
+            callback: value => {
+              return `${value} °C`;
+            },
+          },
         },
         y1: {
           type: 'linear',
@@ -79,8 +93,13 @@ function getChartData(data) {
           max: 16,
           position: 'right',
           ticks: {
-            callback: value => { return `${value} bar / g/s` }
-          }
+            font: {
+              size: window.innerWidth < 640 ? 10 : 12,
+            },
+            callback: value => {
+              return `${value} bar / g/s`;
+            },
+          },
         },
         x: {
           type: 'time',
@@ -89,34 +108,35 @@ function getChartData(data) {
           time: {
             unit: 'second',
             displayFormats: {
-              second: 'HH:mm:ss'
-            }
+              second: 'HH:mm:ss',
+            },
           },
           ticks: {
-            source: 'auto'
-          }
-        }
-      }
+            source: 'auto',
+            callback: (value, index, ticks) => {
+              const now = new Date().getTime();
+              const diff = Math.ceil((now - value) / 1000);
+              return `-${diff}s`;
+            },
+            font: {
+              size: window.innerWidth < 640 ? 10 : 12,
+            },
+            maxTicksLimit: 5,
+          },
+        },
+      },
     },
   };
 }
 
 export function OverviewChart() {
-  const [chart, setChart] = useState(null);
-  const ref = useRef();
   const chartData = getChartData(machine.value.history);
-  useEffect(() => {
-    const ct = new Chart(ref.current, chartData);
-    setChart(ct);
-  }, [ref]);
-  useEffect(() => {
-    const cd = getChartData(machine.value.history);
-    chart.data = cd.data;
-    chart.options = cd.options;
-    chart.update();
-  }, [machine.value.history, chart]);
 
   return (
-    <canvas className="w-full" ref={ref} />
+    <ChartComponent
+      className='h-full min-h-[200px] w-full flex-1 lg:min-h-[350px]'
+      chartClassName='h-full w-full'
+      data={chartData}
+    />
   );
 }

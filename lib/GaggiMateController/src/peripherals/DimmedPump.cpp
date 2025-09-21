@@ -20,6 +20,7 @@ void DimmedPump::loop() {
     _currentPressure = _pressureSensor->getRawPressure();
     _currentFlow = _flowSensor->read_g_s();
     updatePower();
+    _currentFlow = 0.1f * (_pressureController.getPumFlowRate() * 1000000.0f) + 0.9f * _currentFlow;
 }
 
 void DimmedPump::setPower(float setpoint) {
@@ -34,7 +35,11 @@ void DimmedPump::setPower(float setpoint) {
     _psm.set(static_cast<int>(_power));
 }
 
-float DimmedPump::getCoffeeVolume() { return _pressureController.getCoffeeOutputEstimate(); }
+float DimmedPump::getCoffeeVolume() { return _pressureController.getcoffeeOutputEstimate(); }
+
+float DimmedPump::getPumpFlow() { return _currentFlow; }
+
+float DimmedPump::getPuckFlow() { return _pressureController.getCoffeeFlowRate(); }
 
 void DimmedPump::tare() {
     _pressureController.tare();
@@ -51,34 +56,6 @@ void DimmedPump::loopTask(void *arg) {
 }
 
 void DimmedPump::updatePower() {
-    //_pressureController.update();
-    //_flowController.update();
-    //
-    //if (_power > 0 && _currentPressure < 6.0f) 
-    //{
-    //    //4.2g/s ~250ml/min
-    //    setFlowTarget(3.9f, 0.0f);
-    //    float powerInt = calculatePowerForFlow(3.9f, _currentPressure, _pressureLimit);
-    //    _power = std::clamp(powerInt, 0.0001f, 100.0f);
-    //    printf("Mode: %d, Power: %2f, FlowSetpoint: %2f, CurrentFlow: %2f\n", static_cast<int>(_mode), powerInt, _targetFlow, _currentFlow);
-    //}
-    //else if (_power > 0 && _currentPressure >= 6.0f) 
-    //{
-    //    setPressureTarget(9.0f, 0.0f);
-    //        float powerInt = _controllerPower;
-    //    _power = std::clamp(powerInt, 0.0001f, 100.0f);
-    //    //printf("Mode: %d, Power: %2f, PressureSetpoint: %2f, CurrentPressure: %2f\n", static_cast<int>(_mode), _power, _targetPressure, _currentPressure);
-    //}
-    //else if (_power == 0) 
-    //{
-    //    _targetFlow = 0.0f;
-    //    _ctrlPressure = 0.0f;
-    //    _pressureLimit = 0.0f;
-    //    _ctrlFlow = 0.0f;
-    //}  
-
-    //_psm.set(static_cast<int>(_power));
-
     _pressureController.update(static_cast<PressureController::ControlMode>(_mode));
     if (_mode != ControlMode::POWER) {
         _power = _controllerPower;
@@ -126,3 +103,11 @@ void DimmedPump::setPressureTarget(float targetPressure, float flowLimit) {
 }
 
 void DimmedPump::setValveState(bool open) { _valveStatus = open; }
+
+void DimmedPump::setPumpFlowCoeff(float oneBarFlow, float nineBarFlow) {
+    _pressureController.setPumpFlowCoeff(oneBarFlow, nineBarFlow);
+}
+
+void DimmedPump::setPumpFlowPolyCoeffs(float a, float b, float c, float d) {
+    _pressureController.setPumpFlowPolyCoeffs(a, b, c, d);
+}

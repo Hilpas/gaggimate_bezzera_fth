@@ -1,11 +1,12 @@
 #include "GaggiMateController.h"
 #include "utilities.h"
 #include <Arduino.h>
-#include <SPI.h>
 #include <freertos/FreeRTOS.h>
 #include <peripherals/DimmedPump.h>
 #include <peripherals/SimplePump.h>
 #include <freertos/task.h>
+#include <peripherals/DimmedPump.h>
+#include <peripherals/SimplePump.h>
 
 GaggiMateController::GaggiMateController() {
     // disable board detection for now, use my config
@@ -48,7 +49,22 @@ void GaggiMateController::setup() {
     }
     this->brewBtn = new DigitalInput(_config.brewButtonPin, [this](const bool state) { _ble.sendBrewBtnState(state); });
     this->steamBtn = new DigitalInput(_config.steamButtonPin, [this](const bool state) { _ble.sendSteamBtnState(state); });
-    this->temperature_sensor->setup();
+
+    // 5-Pin peripheral port
+    Wire.begin(_config.sunriseSdaPin, _config.sunriseSclPin, 400000);
+    this->ledController = new LedController(&Wire);
+    this->distanceSensor = new DistanceSensor(&Wire, [this](int distance) { _ble.sendTofMeasurement(distance); });
+    if (this->ledController->isAvailable()) {
+        _config.capabilites.ledControls = true;
+        _config.capabilites.tof = true;
+        _ble.registerLedControlCallback(
+            [this](uint8_t channel, uint8_t brightness) { ledController->setChannel(channel, brightness); });
+    }
+
+    String systemInfo = make_system_info(_config);
+    _ble.initServer(systemInfo);
+
+    this->thermocouple->setup();
     this->heater->setup();
     this->valve->setup();
     this->alt->setup();
@@ -59,6 +75,12 @@ void GaggiMateController::setup() {
     if (_config.capabilites.pressure) {
         pressureSensor->setup();
         _ble.registerPressureScaleCallback([this](float scale) { this->pressureSensor->setScale(scale); });
+    }
+    if (_config.capabilites.ledControls) {
+        this->ledController->setup();
+    }
+    if (_config.capabilites.tof) {
+        this->distanceSensor->setup();
     }
 
     // Initialize last ping time
@@ -98,6 +120,17 @@ void GaggiMateController::setup() {
             auto dimmedPump = static_cast<DimmedPump *>(pump);
             dimmedPump->setFlowTuning(Kp, Ki, Kd); 
         });
+    _ble.registerPumpModelCoeffsCallback([this](float a, float b, float c, float d) {
+        if (_config.capabilites.dimming) {
+            auto dimmedPump = static_cast<DimmedPump *>(pump);
+            // Check if this is a flow measurement call (a and b are flow measurements, c and d are nan)
+            if (isnan(c) && isnan(d)) {
+                dimmedPump->setPumpFlowCoeff(a, b); // a = oneBarFlow, b = nineBarFlow
+            } else {
+                dimmedPump->setPumpFlowPolyCoeffs(a, b, c, d); // a, b, c, d are polynomial coefficients
+            }
+        }
+    });
     _ble.registerPingCallback([this]() {
         lastPingTime = millis();
         ESP_LOGV(LOG_TAG, "Ping received, system is alive");
@@ -171,9 +204,10 @@ void GaggiMateController::thermalRunawayShutdown() {
 void GaggiMateController::sendSensorData() {
     if (_config.capabilites.pressure) {
         auto dimmedPump = static_cast<DimmedPump *>(pump);
-        _ble.sendSensorData(this->temperature_sensor->read(), this->pressureSensor->getPressure(), this->flowSensor->read_g_s());
+        _ble.sendSensorData(this->temperature_sensor->read(), this->pressureSensor->getPressure(), dimmedPump->getPuckFlow(),
+                            this->flowSensor->read_g_s());
         _ble.sendVolumetricMeasurement(dimmedPump->getCoffeeVolume());
     } else {
-        _ble.sendSensorData(this->temperature_sensor->read(), 0.0f, 0.0f);
+        _ble.sendSensorData(this->temperature_sensor->read(), 0.0f, 0.0f, 0.0f);
     }
 }

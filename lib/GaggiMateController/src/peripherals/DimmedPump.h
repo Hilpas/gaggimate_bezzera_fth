@@ -22,11 +22,15 @@ class DimmedPump : public Pump {
     void setPower(float setpoint) override;
 
     float getCoffeeVolume();
+    float getPumpFlow();
+    float getPuckFlow();
     void tare();
 
     void setFlowTarget(float targetFlow, float pressureLimit);
     void setFlowTuning(float Kp, float Ki, float Kd);
     void setPressureTarget(float targetPressure, float flowLimit);
+    void setPumpFlowCoeff(float oneBarFlow, float nineBarFlow);
+    void setPumpFlowPolyCoeffs(float a, float b, float c, float d);
     void stop();
     void fullPower();
     void setValveState(bool open);
@@ -69,9 +73,6 @@ class DimmedPump : public Pump {
     static constexpr float MAX_PRESSURE = 15.0f;
     static constexpr float MAX_FREQ = 60.0f;
 
-    [[nodiscard]] float calculateFlowRate(float pressure) const;
-    [[nodiscard]] float calculatePowerForPressure(float targetPressure, float currentPressure, float flowLimit);
-    [[nodiscard]] float calculatePowerForFlow(float targetFlow, float currentPressure, float pressureLimit) const;
     void updatePower();
     void onPressureUpdate(float pressure);
 

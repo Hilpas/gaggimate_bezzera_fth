@@ -1,5 +1,6 @@
 #include "Settings.h"
 
+#include <algorithm>
 #include <utility>
 
 Settings::Settings() {
@@ -20,6 +21,7 @@ Settings::Settings() {
     pid = preferences.getString("pid", DEFAULT_PID);
     standbyPid = preferences.getString("spid", DEFAULT_STANDBY_PID);
     flowPid = preferences.getString("fpid", DEFAULT_FLOW_PID);
+    pumpModelCoeffs = preferences.getString("pmc", DEFAULT_PUMP_MODEL_COEFFS);
     wifiSsid = preferences.getString("ws", "");
     wifiPassword = preferences.getString("wp", "");
     mdnsName = preferences.getString("mn", DEFAULT_MDNS_NAME);
@@ -41,6 +43,7 @@ Settings::Settings() {
     homeAssistant = preferences.getBool("ha_a", false);
     homeAssistantIP = preferences.getString("ha_i", "");
     homeAssistantPort = preferences.getInt("ha_p", 1883);
+    homeAssistantTopic = preferences.getString("ha_t", DEFAULT_HOME_ASSISTANT_TOPIC);
     homeAssistantUser = preferences.getString("ha_u", "");
     homeAssistantPassword = preferences.getString("ha_pw", "");
     standbyTimeout = preferences.getInt("sbt", DEFAULT_STANDBY_TIMEOUT_MS);
@@ -49,13 +52,26 @@ Settings::Settings() {
     selectedProfile = preferences.getString("sp", "");
     profilesMigrated = preferences.getBool("pm", false);
     favoritedProfiles = explode(preferences.getString("fp", ""), ',');
+    profileOrder = explode(preferences.getString("po", ""), ',');
     steamPumpPercentage = preferences.getFloat("spp", DEFAULT_STEAM_PUMP_PERCENTAGE);
+    steamPumpCutoff = preferences.getFloat("spc", DEFAULT_STEAM_PUMP_CUTOFF);
+    historyIndex = preferences.getInt("hi", 0);
 
     // Display settings
     mainBrightness = preferences.getInt("main_b", 16);
     standbyBrightness = preferences.getInt("standby_b", 8);
     standbyBrightnessTimeout = preferences.getInt("standby_bt", 60000);
     wifiApTimeout = preferences.getInt("wifi_apt", DEFAULT_WIFI_AP_TIMEOUT_MS);
+    themeMode = preferences.getInt("theme", 0);
+
+    // Sunrise settings
+    sunriseR = preferences.getInt("sr_r", 0);
+    sunriseG = preferences.getInt("sr_g", 0);
+    sunriseB = preferences.getInt("sr_b", 255);
+    sunriseW = preferences.getInt("sr_w", 50);
+    sunriseExtBrightness = preferences.getInt("sr_exb", 255);
+    emptyTankDistance = preferences.getInt("sr_ed", 200);
+    fullTankDistance = preferences.getInt("sr_fd", 50);
 
     preferences.end();
 
@@ -175,6 +191,11 @@ void Settings::setFlowPid(const String &flowPid) {
     save();
 }
 
+void Settings::setPumpModelCoeffs(const String &pumpModelCoeffs) {
+    this->pumpModelCoeffs = pumpModelCoeffs;
+    save();
+}
+
 void Settings::setWifiSsid(const String &wifiSsid) {
     this->wifiSsid = wifiSsid;
     save();
@@ -254,6 +275,10 @@ void Settings::setHomeAssistantPort(const int homeAssistantPort) {
     this->homeAssistantPort = homeAssistantPort;
     save();
 }
+void Settings::setHomeAssistantTopic(const String &homeAssistantTopic) {
+    this->homeAssistantTopic = homeAssistantTopic;
+    save();
+}
 void Settings::setHomeAssistantUser(const String &homeAssistantUser) {
     this->homeAssistantUser = homeAssistantUser;
     save();
@@ -304,6 +329,21 @@ void Settings::removeFavoritedProfile(String profile) {
     save();
 }
 
+void Settings::setProfileOrder(std::vector<String> profile_order) {
+    std::vector<String> cleaned;
+    cleaned.reserve(profile_order.size());
+    for (auto &id : profile_order) {
+        if (id.isEmpty())
+            continue;
+        if (std::find(cleaned.begin(), cleaned.end(), id) == cleaned.end()) {
+            cleaned.emplace_back(std::move(id));
+        }
+    }
+
+    profileOrder = std::move(cleaned);
+    save();
+}
+
 void Settings::setMainBrightness(int main_brightness) {
     mainBrightness = main_brightness;
     save();
@@ -326,6 +366,56 @@ void Settings::setWifiApTimeout(int timeout) {
 
 void Settings::setSteamPumpPercentage(float steam_pump_percentage) {
     steamPumpPercentage = steam_pump_percentage;
+    save();
+}
+
+void Settings::setSteamPumpCutoff(float steam_pump_cutoff) {
+    steamPumpCutoff = steam_pump_cutoff;
+    save();
+}
+
+void Settings::setThemeMode(int theme_mode) {
+    themeMode = theme_mode;
+    save();
+}
+
+void Settings::setHistoryIndex(int history_index) {
+    historyIndex = history_index;
+    save();
+}
+
+void Settings::setSunriseR(int sunrise_r) {
+    sunriseR = sunrise_r;
+    save();
+}
+
+void Settings::setSunriseG(int sunrise_g) {
+    sunriseG = sunrise_g;
+    save();
+}
+
+void Settings::setSunriseB(int sunrise_b) {
+    sunriseB = sunrise_b;
+    save();
+}
+
+void Settings::setSunriseW(int sunrise_w) {
+    sunriseW = sunrise_w;
+    save();
+}
+
+void Settings::setSunriseExtBrightness(int sunrise_ext_brightness) {
+    sunriseExtBrightness = sunrise_ext_brightness;
+    save();
+}
+
+void Settings::setEmptyTankDistance(int empty_tank_distance) {
+    emptyTankDistance = empty_tank_distance;
+    save();
+}
+
+void Settings::setFullTankDistance(int full_tank_distance) {
+    fullTankDistance = full_tank_distance;
     save();
 }
 
@@ -352,6 +442,7 @@ void Settings::doSave() {
     preferences.putString("pid", pid);
     preferences.putString("spid", standbyPid);
     preferences.putString("fpid", flowPid);
+    preferences.putString("pmc", pumpModelCoeffs);
     preferences.putString("ws", wifiSsid);
     preferences.putString("wp", wifiPassword);
     preferences.putString("mn", mdnsName);
@@ -372,6 +463,7 @@ void Settings::doSave() {
     preferences.putBool("ha_a", homeAssistant);
     preferences.putString("ha_i", homeAssistantIP);
     preferences.putInt("ha_p", homeAssistantPort);
+    preferences.putString("ha_t", homeAssistantTopic);
     preferences.putString("ha_u", homeAssistantUser);
     preferences.putString("ha_pw", homeAssistantPassword);
     preferences.putString("tz", timezone);
@@ -379,15 +471,28 @@ void Settings::doSave() {
     preferences.putString("sp", selectedProfile);
     preferences.putInt("sbt", standbyTimeout);
     preferences.putBool("pm", profilesMigrated);
-    preferences.putInt("mb", momentaryButtons);
+    preferences.putBool("mb", momentaryButtons);
     preferences.putString("fp", implode(favoritedProfiles, ","));
+    preferences.putString("po", implode(profileOrder, ","));
     preferences.putFloat("spp", steamPumpPercentage);
+    preferences.putFloat("spc", steamPumpCutoff);
+    preferences.putInt("hi", historyIndex);
 
     // Display settings
     preferences.putInt("main_b", mainBrightness);
     preferences.putInt("standby_b", standbyBrightness);
     preferences.putInt("standby_bt", standbyBrightnessTimeout);
     preferences.putInt("wifi_apt", wifiApTimeout);
+    preferences.putInt("theme", themeMode);
+
+    // Sunrise Settings
+    preferences.putInt("sr_r", sunriseR);
+    preferences.putInt("sr_g", sunriseG);
+    preferences.putInt("sr_b", sunriseB);
+    preferences.putInt("sr_w", sunriseW);
+    preferences.putInt("sr_exb", sunriseExtBrightness);
+    preferences.putInt("sr_ed", emptyTankDistance);
+    preferences.putInt("sr_fd", fullTankDistance);
 
     preferences.end();
 }

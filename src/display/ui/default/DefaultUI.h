@@ -12,7 +12,7 @@
 class Controller;
 
 constexpr int RERENDER_INTERVAL_IDLE = 2500;
-constexpr int RERENDER_INTERVAL_ACTIVE = 250;
+constexpr int RERENDER_INTERVAL_ACTIVE = 100;
 
 constexpr int TEMP_HISTORY_INTERVAL = 250;
 constexpr int TEMP_HISTORY_LENGTH = 20 * 1000 / TEMP_HISTORY_INTERVAL;
@@ -26,6 +26,7 @@ class DefaultUI {
     // Default work methods
     void init();
     void loop();
+    void loopProfiles();
 
     // Interface methods
     void changeScreen(lv_obj_t **screen, void (*target_init)(void));
@@ -41,6 +42,8 @@ class DefaultUI {
     };
 
     void markDirty() { rerender = true; }
+
+    void applyTheme();
 
   private:
     void setupPanel();
@@ -101,9 +104,11 @@ class DefaultUI {
     int heatingFlash = 0;
 
     int currentProfileIdx;
-    String currentProfileId;
+    String currentProfileId = "";
+    int profileLoaded = 0;
     Profile currentProfileChoice{};
     std::vector<String> favoritedProfiles;
+    int currentThemeMode = 0; // Track current theme mode
 
     // Screen change
     lv_obj_t **targetScreen = &ui_InitScreen;
@@ -115,6 +120,8 @@ class DefaultUI {
 
     xTaskHandle taskHandle;
     static void loopTask(void *arg);
+    xTaskHandle profileTaskHandle;
+    static void profileLoopTask(void *arg);
 };
 
 #endif // DEFAULTUI_H
