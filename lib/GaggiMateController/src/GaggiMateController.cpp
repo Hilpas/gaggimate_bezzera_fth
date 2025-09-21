@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <freertos/FreeRTOS.h>
+#include <peripherals/DimmedPump.h>
+#include <peripherals/SimplePump.h>
 #include <freertos/task.h>
 
 GaggiMateController::GaggiMateController() {

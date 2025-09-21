@@ -1,7 +1,7 @@
 #ifndef DIMMEDPUMP_H
 #define DIMMEDPUMP_H
 #include "PSM.h"
-#include "PressureController.h"
+#include "PressureController/PressureController.h"
 #include "PressureSensor.h"
 #include "FlowSensor.h"
 #include "FlowController.h"
@@ -22,7 +22,6 @@ class DimmedPump : public Pump {
     void setPower(float setpoint) override;
 
     float getCoffeeVolume();
-    float getFlow();
     void tare();
 
     void setFlowTarget(float targetFlow, float pressureLimit);
@@ -49,7 +48,8 @@ class DimmedPump : public Pump {
     float _targetFlow = 0.0f;
     float _targetPressure = 0.0f;
     float _pressureLimit = 0.0f;
-    float _flowLimit = 0.0f;
+    float _ctrlPressure = 0.0f;
+    float _ctrlFlow = 0.0f;
     float _currentPressure = 0.0f;
     float _currentFlow = 0.0f;
     float _lastPressure = 0.0f;

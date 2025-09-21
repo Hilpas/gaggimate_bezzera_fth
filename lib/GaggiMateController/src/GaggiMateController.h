@@ -4,14 +4,12 @@
 #include "NimBLEServerController.h"
 #include <MAX31855.h>
 #include <peripherals/DigitalInput.h>
-#include <peripherals/DimmedPump.h>
-#include <peripherals/Heater.h>
 #include <peripherals/FlowSensor.h>
 #include <peripherals/FlowThroughHeater.h>
 #include <peripherals/Max31855Thermocouple.h>
 #include <peripherals/NTCTemperatureSensor.h>
 #include <peripherals/PressureSensor.h>
-#include <peripherals/SimplePump.h>
+#include <peripherals/Pump.h>
 #include <peripherals/SimpleRelay.h>
 #include <vector>
 
