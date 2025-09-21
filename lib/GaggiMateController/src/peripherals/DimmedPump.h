@@ -6,6 +6,7 @@
 #include "FlowSensor.h"
 #include "FlowController.h"
 #include "Pump.h"
+#include "PSM.h"
 #include <Arduino.h>
 
 constexpr int PUMP_LOOP_INTERVAL_MS = 20;
@@ -42,7 +43,7 @@ class DimmedPump : public Pump {
     PressureSensor *_pressureSensor;
     FlowSensor *_flowSensor;
     PressureController _pressureController;
-    FlowController _flowController;
+    //FlowController _flowController;
     xTaskHandle taskHandle;
 
     ControlMode _mode = ControlMode::POWER;
@@ -70,8 +71,8 @@ class DimmedPump : public Pump {
     float _opvPressure = 0.0f;
 
     static constexpr float BASE_FLOW_RATE = 0.25f;
-    static constexpr float MAX_PRESSURE = 15.0f;
-    static constexpr float MAX_FREQ = 60.0f;
+    static constexpr float MAX_PRESSURE = 12.0f;
+    static constexpr float MAX_FREQ = 50.0f;
 
     void updatePower();
     void onPressureUpdate(float pressure);

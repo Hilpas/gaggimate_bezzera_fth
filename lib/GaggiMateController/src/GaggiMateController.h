@@ -4,7 +4,6 @@
 #include "NimBLEServerController.h"
 #include <peripherals/DigitalInput.h>
 #include <peripherals/DistanceSensor.h>
-#include <peripherals/Heater.h>
 #include <peripherals/LedController.h>
 #include <peripherals/FlowSensor.h>
 #include <peripherals/FlowThroughHeater.h>

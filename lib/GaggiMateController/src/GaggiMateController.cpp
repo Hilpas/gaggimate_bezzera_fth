@@ -18,14 +18,14 @@ GaggiMateController::GaggiMateController() {
 }
 
 void GaggiMateController::setup() {
+    //Manually install the global ISR service once at the start 
+    gpio_install_isr_service(0);
+
     delay(5000);
     // disable board detection for now, use my config
     // detectBoard();       
     _config = GM_BEZZERA;  
     detectAddon();
-
-    String systemInfo = make_system_info(_config);
-    _ble.initServer(systemInfo);
 
     this->temperature_sensor = new NTCTemperatureSensor(
         _config.temperaturePin, 10000.0f, 50000.0f, 25.0f, 3976.0f, [this](float temperature) { /* noop */ },
@@ -51,20 +51,22 @@ void GaggiMateController::setup() {
     this->steamBtn = new DigitalInput(_config.steamButtonPin, [this](const bool state) { _ble.sendSteamBtnState(state); });
 
     // 5-Pin peripheral port
-    Wire.begin(_config.sunriseSdaPin, _config.sunriseSclPin, 400000);
-    this->ledController = new LedController(&Wire);
-    this->distanceSensor = new DistanceSensor(&Wire, [this](int distance) { _ble.sendTofMeasurement(distance); });
-    if (this->ledController->isAvailable()) {
-        _config.capabilites.ledControls = true;
-        _config.capabilites.tof = true;
-        _ble.registerLedControlCallback(
-            [this](uint8_t channel, uint8_t brightness) { ledController->setChannel(channel, brightness); });
-    }
+    //Wire.begin(_config.sunriseSdaPin, _config.sunriseSclPin, 400000);
+    //this->ledController = new LedController(&Wire);
+    //this->distanceSensor = new DistanceSensor(&Wire, [this](int distance) { _ble.sendTofMeasurement(distance); });
+    //if (this->ledController->isAvailable()) {
+    //    _config.capabilites.ledControls = true;
+    //    _config.capabilites.tof = true;
+    //    _ble.registerLedControlCallback(
+    //        [this](uint8_t channel, uint8_t brightness) { ledController->setChannel(channel, brightness); });
+    //}
+    _config.capabilites.ledControls = false;
+    _config.capabilites.tof = false;
 
     String systemInfo = make_system_info(_config);
     _ble.initServer(systemInfo);
 
-    this->thermocouple->setup();
+    this->temperature_sensor->setup();
     this->heater->setup();
     this->valve->setup();
     this->alt->setup();
@@ -205,7 +207,7 @@ void GaggiMateController::sendSensorData() {
     if (_config.capabilites.pressure) {
         auto dimmedPump = static_cast<DimmedPump *>(pump);
         _ble.sendSensorData(this->temperature_sensor->read(), this->pressureSensor->getPressure(), dimmedPump->getPuckFlow(),
-                            this->flowSensor->read_g_s());
+                            dimmedPump->getPumpFlow());
         _ble.sendVolumetricMeasurement(dimmedPump->getCoffeeVolume());
     } else {
         _ble.sendSensorData(this->temperature_sensor->read(), 0.0f, 0.0f, 0.0f);

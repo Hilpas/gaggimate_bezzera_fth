@@ -86,6 +86,9 @@ struct ControllerConfigBezzera {
     uint8_t scaleSdaPin;
     uint8_t scaleSda1Pin;
 
+    uint8_t sunriseSclPin;
+    uint8_t sunriseSdaPin;
+
     uint8_t ext1Pin;
     uint8_t ext2Pin;
     uint8_t ext3Pin;
@@ -252,6 +255,8 @@ const ControllerConfigBezzera GM_BEZZERA = {.name = "GaggiMate Bezzera Build",
                                       .scaleSclPin = 0,     // NC
                                       .scaleSdaPin = 0,     // NC
                                       .scaleSda1Pin = 0,    // NC
+                                      .sunriseSclPin = 44,
+                                      .sunriseSdaPin = 43,
                                       .ext1Pin = 0,
                                       .ext2Pin = 0,
                                       .ext3Pin = 0,
@@ -262,6 +267,8 @@ const ControllerConfigBezzera GM_BEZZERA = {.name = "GaggiMate Bezzera Build",
                                           .dimming = true,
                                           .pressure = true,
                                           .ssrPump = false,
+                                          .ledControls = false,
+                                          .tof = false,
                                       }};
 
 #endif // CONTROLLERCONFIG_H
