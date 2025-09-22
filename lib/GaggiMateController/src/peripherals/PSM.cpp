@@ -1,62 +1,104 @@
 #include "PSM.h"
 
-// The static pointer is no longer needed.
-// PSM* PSM::s_instance = nullptr;
-
-PSM::PSM(uint8_t zeroCrossPin, uint8_t triacPin)
-    : m_zeroCrossPin(zeroCrossPin), m_triacPin(triacPin) {
-    // The constructor no longer needs to set the static pointer.
+PSM::PSM(uint8_t zeroCrossPin, uint8_t triacPin, uint16_t range, int mode, uint8_t divider, uint8_t interruptMinTimeDiff)
+    : m_zeroCrossPin(zeroCrossPin), 
+      m_triacPin(triacPin), 
+      m_interruptMode(mode),
+      m_range(range > 0 ? range : 1) 
+{
+    setDivider(divider);
+    m_interruptMinTimeDiffCycles = interruptMinTimeDiff * 240000; // 240MHz CPU clock
 }
 
 void PSM::begin() {
     pinMode(m_zeroCrossPin, INPUT_PULLUP);
     pinMode(m_triacPin, OUTPUT);
-    digitalWrite(m_triacPin, LOW);
+    digitalWrite(m_triacPin, LOW); // Start with pump off
 
-    // --- FIX: Use attachInterruptArg ---
-    // This function allows us to pass a pointer to 'this' object as the argument,
-    // and it accepts the ESP_INTR_FLAG_IRAM flag.
-    attachInterruptArg(digitalPinToInterrupt(m_zeroCrossPin), onZeroCrossISR, this, FALLING);
+    attachInterruptArg(digitalPinToInterrupt(m_zeroCrossPin), onZeroCrossISR, this, m_interruptMode);
 }
 
-void PSM::setPower(float level) {
-    // Clamp the input level to a safe range of 0.0 to 100.0
-    if (level < 0.0f) level = 0.0f;
-    if (level > 100.0f) level = 100.0f;
-
-    // Convert the 0-100 float to a 0-1000 integer for our dimming algorithm.
-    m_dimmingValue = static_cast<uint16_t>(level * 10.0f);
-}
-
-// --- FIX: Update ISR to handle the argument ---
-// The 'arg' parameter will be the 'this' pointer we passed in begin().
-void IRAM_ATTR PSM::onZeroCrossISR(void* arg) {
-    // Cast the void pointer back to a PSM object pointer and call the handler.
-    PSM* instance = static_cast<PSM*>(arg);
-    instance->handleZeroCross();
-}
-
-// The actual interrupt handler logic remains the same.
-void IRAM_ATTR PSM::handleZeroCross() {
-    // This is the core of the dimming algorithm (a Digital Differential Analyzer).
-    // It decides if we should skip this AC pulse to achieve a fractional power level.
-    m_accumulator += m_dimmingValue;
-    if (m_accumulator >= m_dimmingRange) {
-        m_accumulator -= m_dimmingRange;
-        m_skipPulse = false; // Don't skip this pulse
+void PSM::set(uint16_t value) {
+    if (value <= m_range) {
+        m_value = value;
     } else {
-        m_skipPulse = true;  // Skip this pulse
+        m_value = m_range;
+    }
+}
+
+long PSM::getCounter() {
+    return m_counter;
+}
+
+void PSM::resetCounter() {
+    m_counter = 0;
+}
+
+void PSM::stopAfter(long counter) {
+    m_stopAfter = counter;
+}
+
+uint8_t PSM::getDivider() {
+    return m_divider;
+}
+
+void PSM::setDivider(uint8_t divider) {
+    m_divider = divider > 0 ? divider : 1;
+}
+
+void IRAM_ATTR PSM::onZeroCrossISR(void* arg) {
+    static_cast<PSM*>(arg)->handleZeroCross();
+}
+
+void IRAM_ATTR PSM::handleZeroCross() {
+    // --- 1:1 NACHBILDUNG DER ALTEN LOGIK ---
+
+    // Debounce-Logik (Sicherheitsfeature beibehalten)
+    if (m_interruptMinTimeDiffCycles > 0) {
+        uint32_t now = xthal_get_ccount();
+        if ((now - m_lastCycleCount) < m_interruptMinTimeDiffCycles) {
+            return;
+        }
+        m_lastCycleCount = now;
     }
 
-    // If we are not skipping this pulse, fire the TRIAC.
-    if (!m_skipPulse) {
-        // A small delay to ensure we are past the zero-cross point.
-        // delayMicroseconds() is one of the few delay functions safe to use in an ISR.
-        delayMicroseconds(10);
+    // Divider-Logik
+    if (m_dividerCounter >= m_divider - 1) {
+        m_dividerCounter = 0;
+        
+        // --- calculateSkip()-Logik ---
+        m_accumulator += m_value;
+        if (m_accumulator >= m_range) {
+            m_accumulator -= m_range;
+            m_skipPulse = false;
+        } else {
+            m_skipPulse = true;
+        }
 
-        // Use fast, direct GPIO writes instead of the slow digitalWrite().
-        gpio_set_level((gpio_num_t)m_triacPin, 1);
-        delayMicroseconds(10); // Keep the TRIAC gate high for a moment to ensure it latches.
-        gpio_set_level((gpio_num_t)m_triacPin, 0);
+        // Seltsame Bugfix-Logik aus der alten Lib, für 100% Kompatibilität übernommen
+        if (m_accumulator > m_range) {
+            m_accumulator = 0;
+            m_skipPulse = false;
+        }
+
+        // Counter- und stopAfter-Logik
+        if (!m_skipPulse) {
+            m_counter++;
+            if (m_stopAfter > 0 && m_counter > m_stopAfter) {
+                m_skipPulse = true;
+            }
+        }
+    } else {
+        m_dividerCounter++;
+        // WICHTIG: Im `else`-Fall wird `m_skipPulse` NICHT geändert, genau wie in der alten Lib.
+        // Der Zustand vom letzten Zyklus bleibt erhalten.
+    }
+
+    // --- updateControl()-Logik ---
+    // Dies bildet das Verhalten exakt nach: Pin bleibt HIGH, wenn nicht geskippt wird.
+    if (m_skipPulse) {
+        gpio_set_level((gpio_num_t)m_triacPin, 0); // LOW
+    } else {
+        gpio_set_level((gpio_num_t)m_triacPin, 1); // HIGH
     }
 }

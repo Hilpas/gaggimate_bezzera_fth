@@ -3,10 +3,11 @@
 
 DimmedPump::DimmedPump(uint8_t ssr_pin, uint8_t sense_pin, PressureSensor *pressure_sensor, FlowSensor *flow_sensor)
     : _ssr_pin(ssr_pin), _sense_pin(sense_pin), 
-      _psm(_sense_pin, _ssr_pin), 
+      _psm(_sense_pin, _ssr_pin, 100, FALLING, 2, 4), 
       _pressureSensor(pressure_sensor), _flowSensor(flow_sensor),
       _pressureController(0.03f, &_ctrlPressure, &_ctrlFlow, &_currentPressure, &_controllerPower, &_valveStatus) {
       //_flowController(0.03f, &_targetFlow, &_currentFlow, &_controllerFlowPower, &_valveStatus)
+      _psm.set(0);
     }
 
 void DimmedPump::setup() {
@@ -31,7 +32,7 @@ void DimmedPump::setPower(float setpoint) {
         _currentFlow = 0.0f;
     }
 
-    _psm.setPower(_power);
+    _psm.set(static_cast<uint16_t>(_power));
 }
 
 float DimmedPump::getCoffeeVolume() { return _pressureController.getcoffeeOutputEstimate(); }
@@ -59,7 +60,7 @@ void DimmedPump::updatePower() {
     if (_mode != ControlMode::POWER) {
         _power = _controllerPower;
     }
-    _psm.setPower(_power);
+    _psm.set(static_cast<uint16_t>(_power));
 }
 
 void DimmedPump::setFlowTarget(float targetFlow, float pressureLimit) {

@@ -5,30 +5,47 @@
 
 class PSM {
 public:
-    PSM(uint8_t zeroCrossPin, uint8_t triacPin);
+    // --- NEU: Erweiterter Konstruktor, der dem alten entspricht ---
+    PSM(uint8_t zeroCrossPin, uint8_t triacPin, uint16_t range = 1000, int mode = FALLING, uint8_t divider = 1, uint8_t interruptMinTimeDiff = 0);
+
     void begin();
-    void setPower(float level);
+
+    // --- NEU: set() anstelle von setPower(), um der alten Lib zu entsprechen ---
+    void set(uint16_t value);
+
+    // --- NEU: Alle zusätzlichen Funktionen aus der alten Bibliothek ---
+    long getCounter();
+    void resetCounter();
+    void stopAfter(long counter);
+    uint8_t getDivider();
+    void setDivider(uint8_t divider);
 
 private:
-    // --- FIX: Change ISR to accept an argument ---
-    // The ISR will now be passed a pointer to the PSM object instance.
     static void IRAM_ATTR onZeroCrossISR(void* arg);
-
     void IRAM_ATTR handleZeroCross();
 
     // Pins
     const uint8_t m_zeroCrossPin;
     const uint8_t m_triacPin;
+    const int m_interruptMode;
 
-    // Dimming Algorithm State
-    volatile uint16_t m_dimmingValue = 0;
-    const uint16_t m_dimmingRange = 1000;
+    // --- NEU: Alle Zustandsvariablen aus der alten Bibliothek ---
+    uint16_t m_range;
+    volatile uint16_t m_value = 0;
     volatile uint16_t m_accumulator = 0;
     volatile bool m_skipPulse = true;
 
-    // The static pointer is no longer needed.
-    // static PSM* s_instance; 
-};
+    // Divider-Logik
+    uint8_t m_divider = 1;
+    volatile uint8_t m_dividerCounter = 0;
 
+    // Counter-Logik
+    volatile long m_counter = 0;
+    volatile long m_stopAfter = 0;
+
+    // Sicherer Ersatz für millis() im Interrupt
+    uint32_t m_interruptMinTimeDiffCycles;
+    volatile uint32_t m_lastCycleCount = 0;
+};
 
 #endif // PSM_H
