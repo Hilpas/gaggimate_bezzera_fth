@@ -2,6 +2,8 @@
 #include "Wire.h"
 #include "../GaggiMateController.h"
 
+TwoWire *PressureSensor::i2c_bus = &Wire1;
+
 PressureSensor::PressureSensor(uint8_t sda_pin, uint8_t scl_pin, const pressure_callback_t &callback, float pressure_scale,
                                float voltage_floor, float voltage_ceil)
     : _sda_pin(sda_pin), _scl_pin(scl_pin), _pressure_scale(pressure_scale), _callback(callback), taskHandle(nullptr) {
@@ -14,7 +16,7 @@ void PressureSensor::setup() {
     Wire1.begin(_sda_pin, _scl_pin);
     ESP_LOGV(LOG_TAG, "Initializing pressure sensor on SDA: %d, SCL: %d", _sda_pin, _scl_pin);
     delay(100);
-    ads = new ADS1115(0x48, &Wire1);
+    ads = new ADS1115(0x48, i2c_bus);
     if (!ads->begin()) {
         ESP_LOGE(LOG_TAG, "Failed to initialize ADS1115");
     }

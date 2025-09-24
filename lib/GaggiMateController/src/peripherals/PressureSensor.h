@@ -14,6 +14,8 @@ class PressureSensor {
     PressureSensor(uint8_t sda_pin, uint8_t scl_pin, const pressure_callback_t &callback, float pressure_scale = 16.0f,
                    float voltage_floor = 0.5, float voltage_ceil = 4.5);
     ~PressureSensor() = default;
+    
+    static TwoWire *i2c_bus;
 
     void setup();
     void loop();

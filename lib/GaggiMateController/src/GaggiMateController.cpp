@@ -27,9 +27,11 @@ void GaggiMateController::setup() {
     _config = GM_BEZZERA;  
     detectAddon();
 
-    this->temperature_sensor = new NTCTemperatureSensor(
-        _config.temperaturePin, 10000.0f, 50000.0f, 25.0f, 3976.0f, [this](float temperature) { /* noop */ },
-        [this]() { thermalRunawayShutdown(); });
+    //this->temperature_sensor = new NTCTemperatureSensor(
+    //    _config.temperaturePin, 10000.0f, 50000.0f, 25.0f, 3976.0f, [this](float temperature) { /* noop */ },
+    //    [this]() { thermalRunawayShutdown(); });
+    this->temperature_sensor = new NTCDifferentialTemperatureSensor(_config.pressureSda, _config.pressureScl,
+         [this](float temperature) { /* noop */ }, [this]() { thermalRunawayShutdown(); });
     this->flowSensor = new FlowSensor(_config.flowSensorPin, [this](float flowRate) { /* noop */ });
     // disable stock heater
     //this->heater = new Heater(
@@ -65,8 +67,7 @@ void GaggiMateController::setup() {
 
     String systemInfo = make_system_info(_config);
     _ble.initServer(systemInfo);
-
-    this->temperature_sensor->setup();
+  
     this->heater->setup();
     this->valve->setup();
     this->alt->setup();
@@ -78,6 +79,8 @@ void GaggiMateController::setup() {
         pressureSensor->setup();
         _ble.registerPressureScaleCallback([this](float scale) { this->pressureSensor->setScale(scale); });
     }
+    // Use same I2c bus as pressure sensor
+    this->temperature_sensor->setup();
     if (_config.capabilites.ledControls) {
         this->ledController->setup();
     }

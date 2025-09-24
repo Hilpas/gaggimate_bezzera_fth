@@ -37,7 +37,7 @@ private:
     xTaskHandle taskHandle = nullptr;
 
     // For filtering the flow rate
-    const float STABLE_ALPHA = 0.15f;
+    const float STABLE_ALPHA = 0.15f;   // same as pressure 0.05f
     const float FAST_ALPHA = 0.60f;    
 
     QueueHandle_t _pulseQueue; // <-- ADD THIS: Handle for our queue

@@ -8,6 +8,7 @@
 #include <peripherals/FlowSensor.h>
 #include <peripherals/FlowThroughHeater.h>
 #include <peripherals/Max31855Thermocouple.h>
+#include <peripherals/NTCDifferentialTemperatureSensor.h>
 #include <peripherals/NTCTemperatureSensor.h>
 #include <peripherals/PressureSensor.h>
 #include <peripherals/Pump.h>
@@ -43,7 +44,7 @@ class GaggiMateController {
     ControllerConfigBezzera _config = ControllerConfigBezzera{};
     NimBLEServerController _ble;
 
-    NTCTemperatureSensor *temperature_sensor = nullptr;
+    NTCDifferentialTemperatureSensor *temperature_sensor = nullptr;
     FlowThroughHeater *heater = nullptr;
     FlowSensor *flowSensor = nullptr;
     SimpleRelay *valve = nullptr;
