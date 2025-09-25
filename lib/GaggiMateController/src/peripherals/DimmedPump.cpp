@@ -5,7 +5,7 @@ DimmedPump::DimmedPump(uint8_t ssr_pin, uint8_t sense_pin, PressureSensor *press
     : _ssr_pin(ssr_pin), _sense_pin(sense_pin), 
       _psm(_sense_pin, _ssr_pin, 100, FALLING, 2, 4), 
       _pressureSensor(pressure_sensor), _flowSensor(flow_sensor),
-      _pressureController(0.03f, &_ctrlPressure, &_ctrlFlow, &_currentPressure, &_controllerPower, &_valveStatus) {
+      _pressureController((PUMP_LOOP_INTERVAL_MS/1000), &_ctrlPressure, &_ctrlFlow, &_currentPressure, &_controllerPower, &_valveStatus) {
       //_flowController(0.03f, &_targetFlow, &_currentFlow, &_controllerFlowPower, &_valveStatus)
       _psm.set(0);
     }
@@ -19,7 +19,6 @@ void DimmedPump::loop() {
     _currentPressure = _pressureSensor->getRawPressure();
     _currentFlow = _flowSensor->read_g_s();
     updatePower();
-    //_currentFlow = 0.1f * (_pressureController.getPumFlowRate() * 1000000.0f) + 0.9f * _currentFlow;
 }
 
 void DimmedPump::setPower(float setpoint) {

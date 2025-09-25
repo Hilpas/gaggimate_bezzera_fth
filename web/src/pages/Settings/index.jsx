@@ -458,46 +458,32 @@ export function Settings() {
           <Card sm={10} lg={5} title='Machine settings'>
             <div className='form-control'>
               <label htmlFor='pid' className='mb-2 block text-sm font-medium'>
-                PID Values (Kp, Ki, Kd)
+                PID Values (Kp, Ki, Kd, Kf)
               </label>
               <input
                 id='pid'
                 name='pid'
                 type='text'
                 className='input input-bordered w-full'
-                placeholder='2.0, 0.1, 0.01'
+                placeholder='2.0, 0.1, 0.01, 0.0'
                 value={formData.pid}
                 onChange={onChange('pid')}
               />
             </div>
-            <div>
-            <label htmlFor="standbyPid" className="block font-medium text-gray-700 dark:text-gray-400">
-              Standby PID Values (Kp, Ki, Kd)
-            </label>
-            <input
-              id="standbyPid"
-              name="standbyPid"
-              type="text"
-              className="input-field"
-              placeholder="0.2, 0.0, 0.0"
-              value={formData.standbyPid}
-              onChange={onChange('standbyPid')}
-            />
-          </div>
-          <div>
-            <label htmlFor="flowPid" className="block font-medium text-gray-700 dark:text-gray-400">
-              Flow PID (Kp, Ki, Kd)
-            </label>
-            <input
-              id="flowPid"
-              name="flowPid"
-              type="text"
-              className="input-field"
-              placeholder="15.0, 20.0, 5.0"
-              value={formData.flowPid}
-              onChange={onChange('flowPid')}
-            />
-          </div>        
+            <div className='form-control'>
+              <label htmlFor='standbyPid' className='mb-2 block text-sm font-medium'>
+                Standby PID Values (Kp, Ki, Kd)
+              </label>
+              <input
+                id="standbyPid"
+                name="standbyPid"
+                type="text"
+                className='input input-bordered w-full'
+                placeholder="0.2, 0.0, 0.0"
+                value={formData.standbyPid}
+                onChange={onChange('standbyPid')}
+              />
+            </div>    
             <div className='form-control'>
               <label htmlFor='pumpModelCoeffs' className='mb-2 block text-sm font-medium'>
                 Pump Flow Coefficients <small>Enter 2 values (flow at 1bar, flow at 9bar)</small>

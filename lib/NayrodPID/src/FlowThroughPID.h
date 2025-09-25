@@ -13,7 +13,7 @@ class FlowThroughPID {
   public:
     FlowThroughPID(float *controlerOutput = nullptr, float *sensorTemperatureOutput = nullptr, float *sensorFlowOutput = nullptr, float *setpointTargetPtr = nullptr);
     bool update();
-    void setControllerPIDGains(float Kp, float Ki, float Kd);
+    void setControllerPIDGains(float Kp, float Ki, float Kd, float Kf);
     void resetFeedbackController();
     void setSamplingFrequency(float freq);
     void setCtrlOutputLimits(float minOutput, float maxOutput);
@@ -32,7 +32,7 @@ class FlowThroughPID {
     float getKp() { return gainKp; };
     float getKi() { return gainKi; };
     float getKd() { return gainKd; };
-    float getKFF() { return gainFF; };
+    float getKf() { return gainFF; };
     float getSetpointValue() const { return *setpointTarget; };
     float getInputValue() const { return *sensorTemperatureOutput; };
 

@@ -94,7 +94,6 @@ bool NimBLEClientController::connectToServer() {
     pingChar = pRemoteService->getCharacteristic(NimBLEUUID(PING_CHAR_UUID));
     pidControlChar = pRemoteService->getCharacteristic(NimBLEUUID(PID_CONTROL_CHAR_UUID));
     standbyPidControlChar = pRemoteService->getCharacteristic(NimBLEUUID(STANDBY_PID_CONTROL_CHAR_UUID));
-    flowPidChar = pRemoteService->getCharacteristic(NimBLEUUID(FLOW_PID_CHAR_UUID));
     pumpModelCoeffsChar = pRemoteService->getCharacteristic(NimBLEUUID(PUMP_MODEL_COEFFS_CHAR_UUID));
     infoChar = pRemoteService->getCharacteristic(NimBLEUUID(INFO_UUID));
     pressureScaleChar = pRemoteService->getCharacteristic(NimBLEUUID(PRESSURE_SCALE_UUID));
@@ -181,12 +180,6 @@ void NimBLEClientController::sendPidSettings(const String &pid) {
 void NimBLEClientController::sendStandbyPidSettings(const String &standbyPid) {
     if (standbyPidControlChar != nullptr && client->isConnected()) {
         standbyPidControlChar->writeValue(standbyPid);
-    }
-}
-
-void NimBLEClientController::sendFlowPidSettings(const String &flowPid) {
-    if (flowPidChar != nullptr && client->isConnected()) {
-        flowPidChar->writeValue(flowPid);
     }
 }
 
@@ -297,7 +290,8 @@ void NimBLEClientController::notifyCallback(NimBLERemoteCharacteristic *pRemoteC
             float Kp = get_token(settings, 0, ',').toFloat();
             float Ki = get_token(settings, 1, ',').toFloat();
             float Kd = get_token(settings, 2, ',').toFloat();
-            autotuneResultCallback(Kp, Ki, Kd);
+            float Kf = get_token(settings, 3, ',').toFloat();
+            autotuneResultCallback(Kp, Ki, Kd, Kf);
         }
     }
     if (pRemoteCharacteristic->getUUID().equals(NimBLEUUID(VOLUMETRIC_MEASUREMENT_UUID))) {

@@ -55,11 +55,11 @@ void FlowThroughHeater::setRegulatorReset() {
     flowThroughPID->reset();
 }
 
-void FlowThroughHeater::setTunings(float Kp, float Ki, float Kd) {
-    if (flowThroughPID->getKp() != Kp || flowThroughPID->getKi() != Ki || flowThroughPID->getKd() != Kd) {
-        flowThroughPID->setControllerPIDGains(Kp, Ki, Kd);
+void FlowThroughHeater::setTunings(float Kp, float Ki, float Kd, float Kf) {
+    if (flowThroughPID->getKp() != Kp || flowThroughPID->getKi() != Ki || flowThroughPID->getKd() != Kd || flowThroughPID->getKf() != Kf) {
+        flowThroughPID->setControllerPIDGains(Kp, Ki, Kd, Kf);
         flowThroughPID->reset();
-        ESP_LOGV(LOG_TAG, "Set tunings to Kp: %f, Ki: %f, Kd: %f", Kp, Ki, Kd);
+        ESP_LOGV(LOG_TAG, "Set tunings to Kp: %f, Ki: %f, Kd: %f, Kf: %f", Kp, Ki, Kd, Kf);
     }
 }
 
@@ -100,8 +100,8 @@ float FlowThroughHeater::softPwm(uint32_t windowSize) {
 void FlowThroughHeater::plot(float optimumOutput, float outputScale, uint8_t everyNth) {
     if (plotCount >= everyNth) {
         plotCount = 1;
-        ESP_LOGI(LOG_TAG, "Setpoint: %.2f, Input: %.2f, Output: %.2f, Kp: %.2f, Ki: %.2f, Kd: %.2f",
-                 setpoint, temperature, optimumOutput * outputScale, flowThroughPID->getKp(), flowThroughPID->getKi(), flowThroughPID->getKd());
+        ESP_LOGI(LOG_TAG, "Setpoint: %.2f, Input: %.2f, Output: %.2f, Kp: %.2f, Ki: %.2f, Kd: %.2f, Kf: %.2f",
+                 setpoint, temperature, optimumOutput * outputScale, flowThroughPID->getKp(), flowThroughPID->getKi(), flowThroughPID->getKd(), flowThroughPID->getKf());
     } else
         plotCount++;
 }

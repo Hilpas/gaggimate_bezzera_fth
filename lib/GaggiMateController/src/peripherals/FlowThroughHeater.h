@@ -20,7 +20,7 @@ class FlowThroughHeater {
     void loop();
 
     void setSetpoint(float setpoint);
-    void setTunings(float Kp, float Ki, float Kd);
+    void setTunings(float Kp, float Ki, float Kd, float Kf);
     void setRegulatorReset();
 
   private:
@@ -45,6 +45,7 @@ class FlowThroughHeater {
     float Kp = 0.15;
     float Ki = 0.0;
     float Kd = 0.0;
+    float Kf = 0.0; 
     int plotCount = 0;
 
     bool relayStatus = false;

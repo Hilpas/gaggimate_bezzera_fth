@@ -13,7 +13,6 @@
 #define AUTOTUNE_RESULT_UUID "7f61607a-2817-4354-9b94-d49c057fc879"
 #define PID_CONTROL_CHAR_UUID "d448c469-3e1d-4105-b5b8-75bf7d492fad"
 #define STANDBY_PID_CONTROL_CHAR_UUID "c1f3b6a1-5e4a-4f3a-9c3b-2e1f0a9b8c7d"
-#define FLOW_PID_CHAR_UUID "e1b5c3f3-2f4a-4f7b-8e2e-3c4f0a1b2c3d"
 #define PUMP_MODEL_COEFFS_CHAR_UUID "e448c469-3e1d-4105-b5b8-75bf7d492fae"
 #define BREW_BTN_UUID "a29eb137-b33e-45a4-b1fc-15eb04e8ab39"
 #define STEAM_BTN_UUID "53750675-4839-421e-971e-cc6823507d8e"
@@ -34,9 +33,8 @@ constexpr size_t ERROR_CODE_RUNAWAY = 4;
 constexpr size_t ERROR_CODE_TIMEOUT = 5;
 
 using pin_control_callback_t = std::function<void(bool isActive)>;
-using pid_control_callback_t = std::function<void(float Kp, float Ki, float Kd)>;
+using pid_control_callback_t = std::function<void(float Kp, float Ki, float Kd, float Kf)>;
 using standby_pid_callback_t = std::function<void(float Kp, float Ki, float Kd)>;
-using flow_pid_callback_t = std::function<void(float Kp, float Ki, float Kd)>;
 using pump_model_coeffs_callback_t = std::function<void(float a, float b, float c, float d)>;
 using ping_callback_t = std::function<void()>;
 using remote_err_callback_t = std::function<void(int errorCode)>;

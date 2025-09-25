@@ -20,7 +20,6 @@ Settings::Settings() {
     pressureScaling = preferences.getFloat("ps", DEFAULT_PRESSURE_SCALING);
     pid = preferences.getString("pid", DEFAULT_PID);
     standbyPid = preferences.getString("spid", DEFAULT_STANDBY_PID);
-    flowPid = preferences.getString("fpid", DEFAULT_FLOW_PID);
     pumpModelCoeffs = preferences.getString("pmc", DEFAULT_PUMP_MODEL_COEFFS);
     wifiSsid = preferences.getString("ws", "");
     wifiPassword = preferences.getString("wp", "");
@@ -183,11 +182,6 @@ void Settings::setPid(const String &pid) {
 
 void Settings::setStandbyPid(const String &standbyPid) {
     this->standbyPid = standbyPid;
-    save();
-}
-
-void Settings::setFlowPid(const String &flowPid) {
-    this->flowPid = flowPid;
     save();
 }
 
@@ -441,7 +435,6 @@ void Settings::doSave() {
     preferences.putFloat("ps", pressureScaling);
     preferences.putString("pid", pid);
     preferences.putString("spid", standbyPid);
-    preferences.putString("fpid", flowPid);
     preferences.putString("pmc", pumpModelCoeffs);
     preferences.putString("ws", wifiSsid);
     preferences.putString("wp", wifiPassword);

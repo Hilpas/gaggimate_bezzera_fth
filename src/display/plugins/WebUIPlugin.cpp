@@ -374,8 +374,6 @@ void WebUIPlugin::handleSettings(AsyncWebServerRequest *request) const {
                 settings->setPid(request->arg("pid"));
             if (request->hasArg("standbyPid"))
                 settings->setStandbyPid(request->arg("standbyPid"));
-            if (request->hasArg("flowPid"))
-                settings->setFlowPid(request->arg("flowPid"));
             if (request->hasArg("pumpModelCoeffs"))
                 settings->setPumpModelCoeffs(request->arg("pumpModelCoeffs"));
             if (request->hasArg("wifiSsid"))
@@ -464,7 +462,6 @@ void WebUIPlugin::handleSettings(AsyncWebServerRequest *request) const {
     doc["haTopic"] = settings.getHomeAssistantTopic();
     doc["pid"] = settings.getPid();
     doc["standbyPid"] = settings.getStandbyPid();
-    doc["flowPid"] = settings.getFlowPid();
     doc["pumpModelCoeffs"] = settings.getPumpModelCoeffs();
     doc["wifiSsid"] = settings.getWifiSsid();
     doc["wifiPassword"] = apMode ? "---unchanged---" : settings.getWifiPassword();

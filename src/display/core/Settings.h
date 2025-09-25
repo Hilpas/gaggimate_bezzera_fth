@@ -39,7 +39,6 @@ class Settings {
     bool isDelayAdjust() const { return delayAdjust; }
     String getPid() const { return pid; }
     String getStandbyPid() const { return standbyPid; }
-    String getFlowPid() const { return flowPid; }
     String getPumpModelCoeffs() const { return pumpModelCoeffs; }
     String getWifiSsid() const { return wifiSsid; }
     String getWifiPassword() const { return wifiPassword; }
@@ -101,7 +100,6 @@ class Settings {
     void setDelayAdjust(bool delay_adjust);
     void setPid(const String &pid);
     void setStandbyPid(const String &standbyPid);
-    void setFlowPid(const String &flowPid);
     void setPumpModelCoeffs(const String &pumpModelCoeffs);
     void setWifiSsid(const String &wifiSsid);
     void setWifiPassword(const String &wifiPassword);
@@ -165,7 +163,6 @@ class Settings {
     int startupMode = MODE_STANDBY;
     int standbyTimeout = DEFAULT_STANDBY_TIMEOUT_MS;
     String pid = DEFAULT_PID;
-    String flowPid = DEFAULT_FLOW_PID;
     String standbyPid = DEFAULT_STANDBY_PID;
     String pumpModelCoeffs = DEFAULT_PUMP_MODEL_COEFFS;
     String wifiSsid = "";

@@ -90,10 +90,11 @@ void FlowThroughPID::reset() {
 
 // GETTER-SETTER FUNCTIONS
 // Feedback controller
-void FlowThroughPID::setControllerPIDGains(float Kp, float Ki, float Kd) {
+void FlowThroughPID::setControllerPIDGains(float Kp, float Ki, float Kd, float Kf) {
     this->gainKp = Kp;
     this->gainKi = Ki;
     this->gainKd = Kd;
+    this->gainFF = Kf;
 }
 
 void FlowThroughPID::setSamplingFrequency(float freq) { ctrl_freq_sampling = freq; }
